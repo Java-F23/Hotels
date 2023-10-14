@@ -1,6 +1,4 @@
-Certainly! Here's a polished README file for your hotel management system:
-
-# Hotel Management System README
+# Hotel Management System
 
 ## Table of Contents
 
