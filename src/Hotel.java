@@ -3,6 +3,8 @@ import java.util.Date;
 import java.util.List;
 
 public class Hotel {
+
+    private List<Complaint> complaints = new ArrayList<>();
     private static Hotel instance = null;
     private List<SeasonalPrice> seasonalPrices = new ArrayList<>();
     private List<Room> rooms = new ArrayList<>();
@@ -20,6 +22,79 @@ public class Hotel {
         }
         return instance;
     }
+
+    private static List<ServiceRequest> serviceRequests = new ArrayList<>();
+
+    public static void logServiceRequest(ServiceRequest request) {
+        serviceRequests.add(request);
+    }
+
+    public void logComplaint(Guest guest, String complaintDescription) {
+        int nextComplaintId = complaints.size() + 1; // Generate a unique complaint ID
+        Complaint complaint = new Complaint(nextComplaintId, guest, new Date(), complaintDescription);
+        complaints.add(complaint);
+    }
+
+    public List<Complaint> getUnresolvedComplaints() {
+        List<Complaint> unresolved = new ArrayList<>();
+        for (Complaint complaint : complaints) {
+            if (!complaint.isResolved()) {
+                unresolved.add(complaint);
+            }
+        }
+        return unresolved;
+    }
+
+    public void resolveComplaint(int complaintId, String resolution) {
+        for (Complaint complaint : complaints) {
+            if (complaint.getComplaintId() == complaintId && !complaint.isResolved()) {
+                complaint.setResolution(resolution);
+                complaint.markResolved();
+                System.out.println("Complaint with ID " + complaintId + " has been resolved.");
+                return;
+            }
+        }
+        System.out.println("Complaint not found or already resolved.");
+    }
+    public List<Complaint> getComplaints() {
+        return complaints;
+    }
+
+    public void assignStaffToRequest(ServiceRequest request) {
+        Staff availableStaff = findAvailableStaff();
+        if (availableStaff != null) {
+            request.setStaffAssigned(availableStaff);
+            availableStaff.setAvailable(false);
+        } else {
+            System.out.println("No available staff found.");
+        }
+    }
+
+
+
+    public OccupancyReport generateOccupancyReport(Date startDate, Date endDate) {
+        int totalRooms = rooms.size();
+        int occupiedRoomDays = 0;
+
+        for (Reservation reservation : reservations) {
+            Date checkIn = reservation.getCheckInDate();
+            Date checkOut = reservation.getCheckOutDate();
+            if (checkIn.before(endDate) && checkOut.after(startDate)) {
+                // Calculate the overlap days
+                Date effectiveCheckIn = checkIn.after(startDate) ? checkIn : startDate;
+                Date effectiveCheckOut = checkOut.before(endDate) ? checkOut : endDate;
+                long days = (effectiveCheckOut.getTime() - effectiveCheckIn.getTime()) / (1000 * 60 * 60 * 24);
+                occupiedRoomDays += days;
+            }
+        }
+
+        double occupancyRate = (double) occupiedRoomDays / (totalRooms * ((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+        return new OccupancyReport(startDate, endDate, occupancyRate);
+    }
+
+    public static List<ServiceRequest> getServiceRequests() {
+        return serviceRequests;
+    }
     public void addStaffMember(Staff staff) {
         staffMembers.add(staff);
     }
@@ -33,6 +108,28 @@ public class Hotel {
             }
         }
         room.assignCleaningStaff(staff);
+    }
+    public boolean hasActiveReservation(Guest guest, Date serviceDate) {
+        for (Reservation reservation : reservations) {
+            if (reservation.getGuest().equals(guest) &&
+                    !reservation.isCheckedOut() &&
+                    (serviceDate.after(reservation.getCheckInDate()) || serviceDate.equals(reservation.getCheckInDate())) &&
+                    (serviceDate.before(reservation.getCheckOutDate()) || serviceDate.equals(reservation.getCheckOutDate()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public void completeServiceRequest(ServiceRequest request) {
+        request.complete();
+    }
+    public Staff findAvailableStaff() {
+        for (Staff staff : staffMembers) {
+            if (staff.isAvailable()) {
+                return staff;
+            }
+        }
+        return null;  // Return null if no available staff found
     }
     public void setSeasonalPrice(Date startDate, Date endDate, double multiplier) {
         seasonalPrices.add(new SeasonalPrice(startDate, endDate, multiplier));

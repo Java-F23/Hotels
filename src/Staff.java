@@ -3,7 +3,14 @@ import java.util.Objects;
 public class Staff {
     private String name;
     private int staffId;
+    private boolean isAvailable;
+    public boolean isAvailable() {
+        return isAvailable;
+    }
 
+    public void setAvailable(boolean isAvailable) {
+        this.isAvailable = isAvailable;
+    }
     public Staff(String name, int staffId) {
         this.name = name;
         this.staffId = staffId;
@@ -25,8 +32,4 @@ public class Staff {
         return staffId == staff.staffId;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(staffId);
-    }
 }

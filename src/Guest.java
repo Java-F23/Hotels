@@ -30,7 +30,10 @@ public class Guest extends User {
             }
         }
     }
-
+    public void requestService(String serviceType) {
+        ServiceRequest request = new ServiceRequest(this, serviceType, new Date());
+        Hotel.logServiceRequest(request);
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

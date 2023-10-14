@@ -9,17 +9,16 @@ public class MainApp {
     private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     // Store guest and manager credentials in HashMap
-    private static Map<String, String> guestCredentials = new HashMap<>();
-    private static Map<String, String> managerCredentials = new HashMap<>();
+    private static List<User> guestCredentials = new ArrayList<>();
+    private static List<User> managerCredentials = new ArrayList<>();
     private static List<Staff> staffMembers = new ArrayList<>();
 
     public static void main(String[] args) {
         Room room = new Room(101, "Single", 100.0);
         hotel.addRoom(room);
 
-        // Add guest and manager credentials to the HashMaps
-        guestCredentials.put("guest", "guest123");
-        managerCredentials.put("manager", "manager123");
+        guestCredentials.add(new User("guest1", "password1"));
+        managerCredentials.add(new User("manager1", "password1"));
         staffMembers.add(new Staff("John", 1));
         staffMembers.add(new Staff("Jane", 2));
 
@@ -62,26 +61,28 @@ public class MainApp {
         System.out.print("Enter Password: ");
         String password = scanner.nextLine();
 
-        // Validate manager credentials from the HashMap
-        if (managerCredentials.containsKey(username) && managerCredentials.get(username).equals(password)) {
-            return new Manager(username, password);
-        } else {
-            return null;
+        for (User user : managerCredentials) {
+            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
+                return new Manager(username, password);
+            }
         }
+        return null;
     }
+
     private static User guestLogin() {
         System.out.print("Enter Guest Username: ");
         String username = scanner.nextLine();
         System.out.print("Enter Password: ");
         String password = scanner.nextLine();
 
-        // Validate guest credentials from the HashMap
-        if (guestCredentials.containsKey(username) && guestCredentials.get(username).equals(password)) {
-            return new Guest(username, password);
-        } else {
-            return null;
+        for (User user : guestCredentials) {
+            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
+                return new Guest(username, password);
+            }
         }
+        return null;
     }
+
     private static void managerMenu() {
         while (true) {
             System.out.println("\nManager Menu:");
@@ -94,7 +95,12 @@ public class MainApp {
             System.out.println("7. Calculate Total Revenue");
             System.out.println("8. Set Seasonal Pricing");
             System.out.println("9. Assign Cleaning Staff to Room");
-            System.out.println("10. Exit");
+            System.out.println("10. Generate Occupancy Report");
+            System.out.println("11. Log Complaint");
+            System.out.println("12. View Unresolved Complaints");
+            System.out.println("13. Resolve Complaints");
+            System.out.println("14. View Resolved Complaints");
+            System.out.println("15. Exit");
             System.out.print("Enter your choice: ");
             String choice = scanner.nextLine();
 
@@ -127,6 +133,21 @@ public class MainApp {
                     assignCleaningStaffToRoom();
                     break;
                 case "10":
+                    generateOccupancyReport();
+                    break;
+                case "11":
+                    logComplaint();
+                    break;
+                case "12":
+                    viewUnresolvedComplaints();
+                    break;
+                case "13":
+                    resolveComplaint();
+                    break;
+                case "14":
+                    viewResolvedComplaints();
+                    break;
+                case "15":
                     System.out.println("Exiting manager menu.");
                     return;
                 default:
@@ -239,7 +260,8 @@ public class MainApp {
             System.out.println("2. Book Room");
             System.out.println("3. View Reservations");
             System.out.println("4. View Past Reservations");
-            System.out.println("5. Exit");
+            System.out.println("5. Request Additional Service");
+            System.out.println("6. Exit");
             System.out.print("Enter your choice: ");
             String choice = scanner.nextLine();
 
@@ -257,11 +279,72 @@ public class MainApp {
                     viewPastReservations();
                     break;
                 case "5":
+                    requestAdditionalService();
+                    break;
+                case "6":
                     System.out.println("Exiting guest menu.");
                     return;
                 default:
                     System.out.println("Invalid choice. Please enter a correct option.");
             }
+        }
+    }
+    private static void generateOccupancyReport() {
+        if (loggedInUser instanceof Manager) {
+            System.out.print("Enter Start Date (yyyy-MM-dd): ");
+            String startDateStr = scanner.nextLine();
+            Date startDate;
+            try {
+                startDate = dateFormat.parse(startDateStr);
+            } catch (ParseException e) {
+                System.out.println("Invalid date format. Use yyyy-MM-dd.");
+                return;
+            }
+
+            System.out.print("Enter End Date (yyyy-MM-dd): ");
+            String endDateStr = scanner.nextLine();
+            Date endDate;
+            try {
+                endDate = dateFormat.parse(endDateStr);
+            } catch (ParseException e) {
+                System.out.println("Invalid date format. Use yyyy-MM-dd.");
+                return;
+            }
+
+            // Generate and display the occupancy report
+            Manager manager = (Manager) loggedInUser;
+            manager.generateAndDisplayOccupancyReport(startDate, endDate);
+        } else {
+            System.out.println("Only managers can generate occupancy reports.");
+        }
+    }
+    private static void requestAdditionalService() {
+        if (loggedInUser instanceof Guest) {
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("Enter the type of service you wish to request: ");
+            String serviceType = scanner.nextLine();
+
+            System.out.print("Enter the date for the service request (YYYY-MM-DD): ");
+            String serviceDateInput = scanner.nextLine();
+            Date serviceDate;
+            try {
+                serviceDate = new SimpleDateFormat("yyyy-MM-dd").parse(serviceDateInput);
+            } catch (ParseException e) {
+                System.out.println("Invalid date format.");
+                return;
+            }
+
+            Guest requestingGuest = (Guest) loggedInUser;
+
+            if (hotel.hasActiveReservation(requestingGuest, serviceDate)) {
+                ServiceRequest serviceRequest = new ServiceRequest(requestingGuest, serviceType, serviceDate);
+                hotel.logServiceRequest(serviceRequest);
+                System.out.println("Service request for " + serviceType + " has been submitted.");
+            } else {
+                System.out.println("No active reservation found for the specified date.");
+            }
+        } else {
+            System.out.println("Only guests can request additional services.");
         }
     }
     private static void checkInGuest() {
@@ -391,5 +474,65 @@ public class MainApp {
         }
         return null;
     }
+    private static void logComplaint() {
+        System.out.print("Enter Guest Username: ");
+        String guestUsername = scanner.nextLine();
+        Guest guest = findGuestByUsername(guestUsername);
 
+        if (guest != null) {
+            System.out.print("Enter Complaint Description: ");
+            String complaintDescription = scanner.nextLine();
+            hotel.logComplaint(guest, complaintDescription);
+            System.out.println("Complaint logged successfully.");
+        } else {
+            System.out.println("Guest not found.");
+        }
+    }
+    private static Guest findGuestByUsername(String username) {
+        for (User user : guestCredentials) {
+            if (user instanceof Guest && user.getUsername().equals(username)) {
+                return (Guest) user;
+            }
+        }
+        return null;
+    }
+    private static void viewUnresolvedComplaints() {
+        List<Complaint> unresolvedComplaints = hotel.getUnresolvedComplaints();
+        if (unresolvedComplaints.isEmpty()) {
+            System.out.println("No unresolved complaints.");
+        } else {
+            System.out.println("Unresolved Complaints:");
+            for (Complaint complaint : unresolvedComplaints) {
+                System.out.println(complaint);
+            }
+        }
+    }
+
+    private static void resolveComplaint() {
+        System.out.print("Enter Complaint ID to resolve: ");
+        int complaintId = Integer.parseInt(scanner.nextLine());
+
+        System.out.print("Enter Resolution: ");
+        String resolution = scanner.nextLine();
+
+        hotel.resolveComplaint(complaintId, resolution);
+    }
+
+    private static void viewResolvedComplaints() {
+        List<Complaint> resolvedComplaints = new ArrayList<>();
+        for (Complaint complaint : hotel.getComplaints()) {
+            if (complaint.isResolved()) {
+                resolvedComplaints.add(complaint);
+            }
+        }
+
+        if (resolvedComplaints.isEmpty()) {
+            System.out.println("No resolved complaints.");
+        } else {
+            System.out.println("Resolved Complaints:");
+            for (Complaint complaint : resolvedComplaints) {
+                System.out.println(complaint);
+            }
+        }
+    }
 }
