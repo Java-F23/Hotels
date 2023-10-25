@@ -189,6 +189,28 @@ public class Hotel {
             System.out.println("Error while booking the room: " + e.getMessage());
         }
     }
+
+    public Reservation checkInGuest_List(int roomNumber, String guestUsername, Date targetCheckInDate) throws Exception {
+        Room roomToCheckIn = findRoomByNumber(roomNumber);
+        if (roomToCheckIn == null) {
+            throw new Exception("Room not found.");
+        }
+
+        Reservation targetReservation = null;
+        for (Reservation reservation : reservations) {
+            if (reservation.getRoom().equals(roomToCheckIn) &&
+                    reservation.getGuest().getUsername().equals(guestUsername) &&
+                    !reservation.isCheckedIn() &&
+                    reservation.getCheckInDate().equals(targetCheckInDate)) {
+
+                targetReservation = reservation;
+                break;
+            }
+        }
+        return targetReservation;
+
+    }
+
     public void checkInGuest(int roomNumber, String guestUsername, Date targetCheckInDate) throws Exception {
         Room roomToCheckIn = findRoomByNumber(roomNumber);
         if (roomToCheckIn == null) {

@@ -1,8 +1,22 @@
+import java.awt.*;
 import java.util.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class MainApp {
+
+    static void addActionToButton(JButton button, final JPanel cardPanel, final CardLayout cardLayout, final String cardName) {
+        button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                cardLayout.show(cardPanel, cardName);
+            }
+        });
+    }
     private static Hotel hotel = Hotel.getInstance();
     private static Scanner scanner = new Scanner(System.in);
     private static User loggedInUser = null;
@@ -14,53 +28,601 @@ public class MainApp {
     private static List<Staff> staffMembers = new ArrayList<>();
 
     public static void main(String[] args) {
-        Room room = new Room(101, "Single", 100.0);
-        hotel.addRoom(room);
-
         guestCredentials.add(new User("guest1", "password1"));
         managerCredentials.add(new User("manager1", "password1"));
-        staffMembers.add(new Staff("John", 1));
-        staffMembers.add(new Staff("Jane", 2));
+        JFrame frame = new JFrame("Hotel Management System");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setPreferredSize(new Dimension(800, 600));
 
-        while (true) {
-            System.out.println("\nHotel Management System:");
-            System.out.println("1. Login as Manager");
-            System.out.println("2. Login as Guest");
-            System.out.println("3. Exit");
-            System.out.print("Enter your choice: ");
-            String choice = scanner.nextLine();
+        final JPanel cardPanel = new JPanel();
+        final CardLayout cardLayout = new CardLayout();
+        cardPanel.setLayout(cardLayout);
 
-            switch (choice) {
-                case "1":
-                    loggedInUser = managerLogin();
-                    if (loggedInUser != null && loggedInUser instanceof Manager) {
-                        managerMenu();
-                    } else {
-                        System.out.println("Invalid manager credentials.");
+
+// Welcome Card
+        JPanel welcomeCard = new JPanel();
+        welcomeCard.setLayout(new BoxLayout(welcomeCard, BoxLayout.PAGE_AXIS));
+
+        JLabel welcomeLabel = new JLabel("Welcome!");
+        welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton managerButton = new JButton("Login as Manager");
+        managerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton guestButton = new JButton("Login as Guest");
+        guestButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton exitButton = new JButton("Exit");
+        exitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        welcomeCard.add(Box.createVerticalGlue());
+        welcomeCard.add(welcomeLabel);
+        welcomeCard.add(Box.createVerticalStrut(10));
+        welcomeCard.add(managerButton);
+        welcomeCard.add(Box.createVerticalStrut(10));
+        welcomeCard.add(guestButton);
+        welcomeCard.add(Box.createVerticalStrut(10));
+        welcomeCard.add(exitButton);
+        welcomeCard.add(Box.createVerticalGlue());
+
+
+
+        // Manager Login Card
+        JPanel managerLoginCard = new JPanel();
+        JTextField managerUsername = new JTextField(20);
+        JPasswordField managerPassword = new JPasswordField(20);
+        JButton managerSubmit = new JButton("Submit");
+        managerLoginCard.add(new JLabel("Manager Username: "));
+        managerLoginCard.add(managerUsername);
+        managerLoginCard.add(new JLabel("Manager Password: "));
+        managerLoginCard.add(managerPassword);
+        managerLoginCard.add(managerSubmit);
+
+        // Guest Login Card
+        JPanel guestLoginCard = new JPanel();
+        JTextField guestUsername = new JTextField(20);
+        JPasswordField guestPassword = new JPasswordField(20);
+        JButton guestSubmit = new JButton("Submit");
+        guestLoginCard.add(new JLabel("Guest Username: "));
+        guestLoginCard.add(guestUsername);
+        guestLoginCard.add(new JLabel("Guest Password: "));
+        guestLoginCard.add(guestPassword);
+        guestLoginCard.add(guestSubmit);
+
+        // Manager Menu Card
+        JPanel managerCard = new JPanel();
+
+        managerCard.setLayout(new GridLayout(16, 1));
+        String[] managerOptions = {
+                "Add/Update Room", "View Available Rooms", "Check-In Guest", "Check-Out Guest",
+                "View Reservations", "View Past Reservations", "Calculate Total Revenue",
+                "Set Seasonal Pricing", "Assign Cleaning Staff", "Generate Occupancy Report",
+                "Log Complaint", "View Unresolved Complaints", "Resolve Complaints", "View Resolved Complaints"
+        };
+
+
+
+// Create the card for Add/Update Room
+        JPanel addOrUpdateRoomCard = new JPanel();
+        JTextField roomNumberField = new JTextField(10);
+        JTextField roomTypeField = new JTextField(10);
+        JTextField roomPriceField = new JTextField(10);
+        JButton submitRoomButton = new JButton("Submit");
+        addOrUpdateRoomCard.add(new JLabel("Room Number:"));
+        addOrUpdateRoomCard.add(roomNumberField);
+        addOrUpdateRoomCard.add(new JLabel("Room Type:"));
+        addOrUpdateRoomCard.add(roomTypeField);
+        addOrUpdateRoomCard.add(new JLabel("Room Price:"));
+        addOrUpdateRoomCard.add(roomPriceField);
+        addOrUpdateRoomCard.add(submitRoomButton);
+        JButton backButton = new JButton("Back");
+        addOrUpdateRoomCard.add(backButton);
+
+// Create the card for viewAvailableRooms
+        JPanel viewAvailableRoomsCard = new JPanel();
+        viewAvailableRoomsCard.setLayout(new BorderLayout());
+        JLabel checkInLabel = new JLabel("Enter Check-In Date (yyyy-MM-dd):");
+        JTextField checkInField = new JTextField(20);
+        JLabel checkOutLabel = new JLabel("Enter Check-Out Date (yyyy-MM-dd):");
+        JTextField checkOutField = new JTextField(20);
+        JButton submitButton = new JButton("Submit");
+        JTextArea roomListArea = new JTextArea();
+        roomListArea.setEditable(false);
+        JPanel inputPanel = new JPanel(new GridLayout(4, 1));
+        JButton backButton_viewAvailableRooms = new JButton("Back");
+        inputPanel.add(checkInLabel);
+        inputPanel.add(checkInField);
+        inputPanel.add(checkOutLabel);
+        inputPanel.add(checkOutField);
+        inputPanel.add(submitButton);
+        inputPanel.add(backButton_viewAvailableRooms);
+        viewAvailableRoomsCard.add(inputPanel, BorderLayout.NORTH);
+        viewAvailableRoomsCard.add(new JScrollPane(roomListArea), BorderLayout.CENTER);
+
+        JPanel navPanel2 = new JPanel();
+        navPanel2.add(backButton_viewAvailableRooms);
+        navPanel2.add(submitButton);
+        viewAvailableRoomsCard.add(navPanel2, BorderLayout.SOUTH);
+
+// Create the card for checkInGuestCard
+        JPanel checkInGuestCard = new JPanel(new BorderLayout());
+
+// Create Input Fields and Buttons
+        JTextField guestUsernameField = new JTextField(15);
+        JTextField roomNumberField2 = new JTextField(5);
+        JFormattedTextField checkInDateField = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd"));
+        checkInDateField.setPreferredSize(new Dimension(100, 20));
+        JButton searchButton = new JButton("Search");
+        JButton checkInButton = new JButton("Check In");
+        JButton backButton_checkInGuest = new JButton("Back");
+        checkInButton.setEnabled(false);  // Disabled by default
+
+
+
+// Panel for Input Fields
+        JPanel inputPanel2 = new JPanel();
+        inputPanel2.add(new JLabel("Guest Username: "));
+        inputPanel2.add(guestUsernameField);
+        inputPanel2.add(new JLabel("Room Number: "));
+        inputPanel2.add(roomNumberField2);
+        inputPanel2.add(new JLabel("Check-In Date: "));
+        checkInDateField.setText("yyyy-MM-dd");
+        inputPanel2.add(checkInDateField);
+        inputPanel2.add(searchButton);
+        checkInGuestCard.add(inputPanel2, BorderLayout.NORTH);
+
+// Table to Display Results
+        String[] columnNames = {"Room Number", "Guest Username", "Check-In Date", "Check-Out Date"};
+        DefaultTableModel model = new DefaultTableModel(null, columnNames);
+        JTable table = new JTable(model);
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setPreferredSize(new Dimension(500, 200));
+        checkInGuestCard.add(scrollPane, BorderLayout.CENTER);
+
+        // Add Check-In Button
+        // Add the back button to a navigation panel
+        JPanel navPanel = new JPanel();
+        navPanel.add(backButton_checkInGuest);
+        navPanel.add(checkInButton);
+        checkInGuestCard.add(navPanel, BorderLayout.SOUTH);
+
+// Handle the Search Button Click
+        searchButton.addActionListener(e -> {
+            if (validateInputFields(guestUsernameField, roomNumberField2, checkInDateField)) {
+                // Validate the date is not in the past
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                try {
+                    Date checkInDate = dateFormat.parse(checkInDateField.getText());
+                    Date currentDate = new Date();
+                    if (checkInDate.before(currentDate)) {
+                        JOptionPane.showMessageDialog(null, "Date is in the past.");
+                        return;
                     }
-                    break;
-                case "2":
-                    loggedInUser = guestLogin();
-                    if (loggedInUser != null && loggedInUser instanceof Guest) {
-                        guestMenu();
-                    } else {
-                        System.out.println("Invalid guest credentials.");
-                    }
-                    break;
-                case "3":
-                    System.out.println("Exiting the system. Goodbye!");
+                } catch (ParseException ex) {
+                    JOptionPane.showMessageDialog(null, "Invalid date format. Use yyyy-MM-dd.");
                     return;
-                default:
-                    System.out.println("Invalid choice. Please enter a correct option.");
-            }
-        }
-    }
-    private static User managerLogin() {
-        System.out.print("Enter Manager Username: ");
-        String username = scanner.nextLine();
-        System.out.print("Enter Password: ");
-        String password = scanner.nextLine();
+                }
 
+                // Call checkInGuest_List from hotel.java and update the table with the result
+                // ... your existing code to call checkInGuest_List and update the table
+
+                checkInButton.setEnabled(true);  // Enable the Check In button if search was successful
+            } else {
+                JOptionPane.showMessageDialog(null, "Please enter valid information.");
+                checkInButton.setEnabled(false);
+            }
+        });
+
+// Handle the Check-In Button Click
+        checkInButton.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row != -1) {
+                // Your existing code to call the check-in method in hotel.java
+            } else {
+                JOptionPane.showMessageDialog(null, "No reservation selected for check-in.");
+            }
+        });
+
+
+// Create the card for checkOutGuestCard
+        JPanel checkOutGuestCard = new JPanel();
+
+        // Create the card for viewReservationsCard
+        JPanel viewReservationsCard = new JPanel();
+
+        // Create the card for viewPastReservationsCard
+        JPanel viewPastReservationsCard = new JPanel();
+
+        // Create the card for calculateTotalRevenueCard
+        JPanel calculateTotalRevenueCard = new JPanel();
+
+        // Create the card for setSeasonalPricingCard
+        JPanel setSeasonalPricingCard = new JPanel();
+
+        // Create the card for generateOccupancyReportCard
+        JPanel generateOccupancyReportCard = new JPanel();
+
+        // Create the card for logComplaintCard
+        JPanel logComplaintCard = new JPanel();
+
+        // Create the card for viewUnresolvedComplaintsCard
+        JPanel viewUnresolvedComplaintsCard = new JPanel();
+
+        // Create the card for resolveComplaintsCard
+        JPanel resolveComplaintsCard = new JPanel();
+
+        // Create the card for viewResolvedComplaintsCard
+        JPanel viewResolvedComplaintsCard = new JPanel();
+
+        for (String option : managerOptions) {
+            JButton button = new JButton(option);
+            button.addActionListener(e -> {
+                String buttonText = ((JButton) e.getSource()).getText();
+                switch (buttonText) {
+                    case "Add/Update Room":
+                        cardLayout.show(cardPanel, "addOrUpdateRoomCard");
+                        break;
+                    case "View Available Rooms":
+                        cardLayout.show(cardPanel, "viewAvailableRoomsCard");
+                        break;
+                    case "Check-In Guest":
+                        cardLayout.show(cardPanel, "checkInGuestCard");
+                        break;
+                    case "Check-Out Guest":
+                        cardLayout.show(cardPanel, "checkOutGuestCard");
+                        break;
+                    case "View Reservations":
+                        cardLayout.show(cardPanel, "viewReservationsCard");
+                        break;
+                    case "View Past Reservations":
+                        cardLayout.show(cardPanel, "viewPastReservationsCard");
+                        break;
+                    case "Calculate Total Revenue":
+                        cardLayout.show(cardPanel, "calculateTotalRevenueCard");
+                        break;
+                    case "Set Seasonal Pricing":
+                        cardLayout.show(cardPanel, "setSeasonalPricingCard");
+                        break;
+                    case "Assign Cleaning Staff":
+                        cardLayout.show(cardPanel, "assignCleaningStaffCard");
+                        break;
+                    case "Generate Occupancy Report":
+                        cardLayout.show(cardPanel, "generateOccupancyReportCard");
+                        break;
+                    case "Log Complaint":
+                        cardLayout.show(cardPanel, "logComplaintCard");
+                        break;
+                    case "View Unresolved Complaints":
+                        cardLayout.show(cardPanel, "viewUnresolvedComplaintsCard");
+                        break;
+                    case "Resolve Complaints":
+                        cardLayout.show(cardPanel, "resolveComplaintsCard");
+                        break;
+                    case "View Resolved Complaints":
+                        cardLayout.show(cardPanel, "viewResolvedComplaintsCard");
+                        break;
+                    default:
+                        System.out.println("No matching action for this button");
+                        break;
+                }
+            });
+            managerCard.add(button);
+        }
+
+        JButton logoutButtonM = new JButton("Logout");
+        managerCard.add(logoutButtonM);
+
+        // Guest Menu Card
+        JPanel guestCard = new JPanel();
+        guestCard.setLayout(new GridLayout(7, 1));
+        String[] guestOptions = {"View Available Rooms", "Book Room", "View Reservations",
+                "View Past Reservations", "Request Additional Service"};
+
+        // Create the card for Guest View Available Rooms
+        JPanel Guest_viewAvailableRoomsCard = new JPanel();
+        Guest_viewAvailableRoomsCard.setLayout(new BorderLayout());
+        JLabel Guest_checkInLabel = new JLabel("Enter Check-In Date (yyyy-MM-dd):");
+        JTextField Guest_checkInField = new JTextField(20);
+        JLabel Guest_checkOutLabel = new JLabel("Enter Check-Out Date (yyyy-MM-dd):");
+        JTextField Guest_checkOutField = new JTextField(20);
+        JButton Guest_submitButton = new JButton("Submit");
+        JTextArea Guest_roomListArea = new JTextArea();
+        Guest_roomListArea.setEditable(false);
+        JPanel Guest_inputPanel = new JPanel(new GridLayout(4, 1));
+        JButton Guest_backButton_viewAvailableRooms = new JButton("Back");
+        Guest_inputPanel.add(Guest_checkInLabel);
+        Guest_inputPanel.add(Guest_checkInField);
+        Guest_inputPanel.add(Guest_checkOutLabel);
+        Guest_inputPanel.add(Guest_checkOutField);
+        Guest_inputPanel.add(Guest_submitButton);
+        Guest_inputPanel.add(Guest_backButton_viewAvailableRooms);
+        Guest_viewAvailableRoomsCard.add(Guest_inputPanel, BorderLayout.NORTH);
+        Guest_viewAvailableRoomsCard.add(new JScrollPane(Guest_roomListArea), BorderLayout.CENTER);
+
+        JPanel Guest_navPanel2 = new JPanel();
+        Guest_navPanel2.add(Guest_backButton_viewAvailableRooms);
+        Guest_navPanel2.add(Guest_submitButton);
+        Guest_viewAvailableRoomsCard.add(Guest_navPanel2, BorderLayout.SOUTH);
+
+        // Create the card for BookRoom
+        JPanel Guest_BookRoom = new JPanel();
+
+        // Create the card for ViewReservations
+        JPanel Guest_ViewReservations = new JPanel();
+
+        // Create the card for ViewPastReservations
+        JPanel Guest_ViewPastReservations = new JPanel();
+
+        // Create the card for RequestAdditionalService
+        JPanel Guest_RequestAdditionalService = new JPanel();
+
+        for (String option : guestOptions) {
+            JButton button = new JButton(option);
+            button.addActionListener(e -> {
+                String buttonText = ((JButton) e.getSource()).getText();
+                switch (buttonText) {
+                    case "View Available Rooms":
+                        cardLayout.show(cardPanel, "Guest_viewAvailableRoomsCard");
+                        break;
+                    case "Book Room":
+                        cardLayout.show(cardPanel, "Guest_BookRoom");
+                        break;
+                    case "View Reservations":
+                        cardLayout.show(cardPanel, "Guest_ViewReservations");
+                        break;
+                    case "View Past Reservations":
+                        cardLayout.show(cardPanel, "Guest_ViewPastReservations");
+                        break;
+                    case "Request Additional Service":
+                        cardLayout.show(cardPanel, "Guest_RequestAdditionalService");
+                        break;
+                    default:
+                        System.out.println("No matching action for this button");
+                        break;
+                }
+            });
+            guestCard.add(button);
+        }
+        JButton logoutButtonG = new JButton("Logout");
+        guestCard.add(logoutButtonG);
+
+        // Adding cards to the panel
+        cardPanel.add(welcomeCard, "WelcomeCard");
+        cardPanel.add(managerLoginCard, "ManagerLoginCard");
+        cardPanel.add(guestLoginCard, "GuestLoginCard");
+        cardPanel.add(managerCard, "ManagerCard");
+        cardPanel.add(guestCard, "GuestCard");
+        cardPanel.add(addOrUpdateRoomCard, "addOrUpdateRoomCard");
+        cardPanel.add(viewAvailableRoomsCard, "viewAvailableRoomsCard");
+        cardPanel.add(checkInGuestCard, "checkInGuestCard");
+        cardPanel.add(Guest_viewAvailableRoomsCard, "Guest_viewAvailableRoomsCard");
+
+        // Button actions
+        addActionToButton(managerButton, cardPanel, cardLayout, "ManagerLoginCard");
+        addActionToButton(guestButton, cardPanel, cardLayout, "GuestLoginCard");
+        addActionToButton(exitButton, cardPanel, cardLayout, "Exit");
+
+        logoutButtonM.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                loggedInUser = null;
+                managerUsername.setText("");
+                managerPassword.setText("");
+                cardLayout.show(cardPanel, "WelcomeCard");
+            }
+        });
+        logoutButtonG.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                loggedInUser = null;
+                guestUsername.setText("");
+                guestPassword.setText("");
+                cardLayout.show(cardPanel, "WelcomeCard");
+            }
+        });
+
+        // Login validation for manager
+        managerSubmit.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String username = managerUsername.getText();
+                String password = new String(managerPassword.getPassword());
+                loggedInUser = managerLogin(username, password);
+                if (loggedInUser instanceof Manager) {
+                    cardLayout.show(cardPanel, "ManagerCard");
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Invalid manager credentials.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        submitButton.addActionListener(e -> {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    Date checkInDate, checkOutDate;
+                    Date currentDate = new Date();
+            try {
+                checkInDate = dateFormat.parse(checkInField.getText());
+                if (checkInDate.before(currentDate)) {
+                    roomListArea.setText("Check-In date cannot be in the past.");
+                    return;
+                }
+            } catch (ParseException ex) {
+                roomListArea.setText("Invalid Check-In date format. Use yyyy-MM-dd.");
+                return;
+            }
+            try {
+                checkOutDate = dateFormat.parse(checkOutField.getText());
+                if (checkOutDate.before(currentDate) || checkOutDate.before(checkInDate)) {
+                    roomListArea.setText("Check-Out date cannot be in the past or before Check-In date.");
+                    return;
+                }
+            } catch (ParseException ex) {
+                roomListArea.setText("Invalid Check-Out date format. Use yyyy-MM-dd.");
+                return;
+            }
+
+
+            List<Room> availableRooms = hotel.getAvailableRooms(checkInDate, checkOutDate);
+            if (availableRooms.isEmpty()) {
+                roomListArea.setText("No available rooms for the given date range.");
+            } else {
+                StringBuilder sb = new StringBuilder("Available Rooms:\n");
+                for (Room room : availableRooms) {
+                    sb.append(room.toString()).append("\n"); // assuming Room class has a meaningful toString method
+                }
+                roomListArea.setText(sb.toString());
+            }
+
+        });
+        Guest_submitButton.addActionListener(e -> {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date checkInDate, checkOutDate;
+            Date currentDate = new Date();
+            try {
+                checkInDate = dateFormat.parse(Guest_checkInField.getText());
+                if (checkInDate.before(currentDate)) {
+                    Guest_roomListArea.setText("Check-In date cannot be in the past.");
+                    return;
+                }
+            } catch (ParseException ex) {
+                Guest_roomListArea.setText("Invalid Check-In date format. Use yyyy-MM-dd.");
+                return;
+            }
+            try {
+                checkOutDate = dateFormat.parse(Guest_checkOutField.getText());
+                if (checkOutDate.before(currentDate) || checkOutDate.before(checkInDate)) {
+                    Guest_roomListArea.setText("Check-Out date cannot be in the past or before Check-In date.");
+                    return;
+                }
+            } catch (ParseException ex) {
+                Guest_roomListArea.setText("Invalid Check-Out date format. Use yyyy-MM-dd.");
+                return;
+            }
+
+
+            List<Room> availableRooms = hotel.getAvailableRooms(checkInDate, checkOutDate);
+            if (availableRooms.isEmpty()) {
+                Guest_roomListArea.setText("No available rooms for the given date range.");
+            } else {
+                StringBuilder sb = new StringBuilder("Available Rooms:\n");
+                for (Room room : availableRooms) {
+                    sb.append(room.toString()).append("\n"); // assuming Room class has a meaningful toString method
+                }
+                Guest_roomListArea.setText(sb.toString());
+            }
+
+        });
+
+            // Login validation for guest
+        guestSubmit.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String username = guestUsername.getText();
+                String password = new String(guestPassword.getPassword());
+                loggedInUser = guestLogin(username, password);
+                if (loggedInUser instanceof Guest) {
+                    cardLayout.show(cardPanel, "GuestCard");
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Invalid guest credentials.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        // Add action listener to submit button
+        submitRoomButton.addActionListener(e -> {
+
+            try {
+                int roomNumber = Integer.parseInt(roomNumberField.getText());
+                String roomType = roomTypeField.getText();
+                double roomPrice = Double.parseDouble(roomPriceField.getText());
+                hotel.addOrUpdateRoom(roomNumber, roomType, roomPrice);
+            } catch (NumberFormatException Numbe) {
+                // Handle the exception. For example, show a dialog to inform the user that they've entered invalid data
+                JOptionPane.showMessageDialog(null, "Please enter valid numbers for room number and room price.");
+            }
+        });
+
+        backButton.addActionListener(e -> {
+            cardLayout.show(cardPanel, "ManagerCard");
+        });
+        backButton_viewAvailableRooms.addActionListener(e -> {
+            roomListArea.setText("");
+            checkInField.setText("");
+            checkOutField.setText("");
+            cardLayout.show(cardPanel, "ManagerCard");
+        });
+        backButton_checkInGuest.addActionListener(e -> {
+            guestUsernameField.setText("");
+            roomNumberField2.setText("");
+            checkInDateField.setText("");
+            cardLayout.show(cardPanel, "ManagerCard");
+        });
+
+        Guest_backButton_viewAvailableRooms.addActionListener(e -> {
+            Guest_checkInField.setText("");
+            Guest_checkOutField.setText("");
+            Guest_roomListArea.setText("");
+            cardLayout.show(cardPanel, "GuestCard");
+        });
+
+        // Exit the application
+        exitButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+
+        frame.add(cardPanel);
+        frame.pack();
+        frame.setVisible(true);
+
+    }
+
+    // Helper Method to Validate Input Fields
+    static boolean validateInputFields(JTextField guestUsernameField, JTextField roomNumberField, JFormattedTextField checkInDateField) {
+        String guestUsername = guestUsernameField.getText();
+        String roomNumber = roomNumberField.getText();
+        String checkInDate = checkInDateField.getText();
+
+        // Validate guest username
+        if (guestUsername == null || guestUsername.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Guest Username cannot be empty.");
+            return false;
+        }
+
+        // Validate room number
+        if (roomNumber == null || roomNumber.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Room Number cannot be empty.");
+            return false;
+        }
+
+        try {
+            Integer.parseInt(roomNumber);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "Room Number must be an integer.");
+            return false;
+        }
+
+        // Validate check-in and check-out dates
+        if (checkInDate == null || checkInDate.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Check-In Date cannot be empty.");
+            return false;
+        }
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            Date parsedCheckInDate = dateFormat.parse(checkInDate);
+            Date currentDate = new Date();
+            if (parsedCheckInDate.before(currentDate)) {
+                JOptionPane.showMessageDialog(null, "Date cannot be in the past.");
+                return false;
+            }
+
+        } catch (ParseException e) {
+            JOptionPane.showMessageDialog(null, "Invalid date format. Use yyyy-MM-dd.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private static User managerLogin(String username, String password) {
         for (User user : managerCredentials) {
             if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
                 return new Manager(username, password);
@@ -69,11 +631,7 @@ public class MainApp {
         return null;
     }
 
-    private static User guestLogin() {
-        System.out.print("Enter Guest Username: ");
-        String username = scanner.nextLine();
-        System.out.print("Enter Password: ");
-        String password = scanner.nextLine();
+    private static User guestLogin(String username, String password) {
 
         for (User user : guestCredentials) {
             if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
@@ -83,123 +641,11 @@ public class MainApp {
         return null;
     }
 
-    private static void managerMenu() {
-        while (true) {
-            System.out.println("\nManager Menu:");
-            System.out.println("1. Add/Update Room");
-            System.out.println("2. View Available Rooms");
-            System.out.println("3. Check-In Guest");
-            System.out.println("4. Check-Out Guest");
-            System.out.println("5. View Reservations");
-            System.out.println("6. View Past Reservations");
-            System.out.println("7. Calculate Total Revenue");
-            System.out.println("8. Set Seasonal Pricing");
-            System.out.println("9. Assign Cleaning Staff to Room");
-            System.out.println("10. Generate Occupancy Report");
-            System.out.println("11. Log Complaint");
-            System.out.println("12. View Unresolved Complaints");
-            System.out.println("13. Resolve Complaints");
-            System.out.println("14. View Resolved Complaints");
-            System.out.println("15. Exit");
-            System.out.print("Enter your choice: ");
-            String choice = scanner.nextLine();
-
-            switch (choice) {
-                case "1":
-                    addOrUpdateRoom();
-                    break;
-                case "2":
-                    viewAvailableRooms();
-                    break;
-                case "3":
-                    checkInGuest();
-                    break;
-                case "4":
-                    checkOutGuest();
-                    break;
-                case "5":
-                    viewReservations();
-                    break;
-                case "6":
-                    viewPastReservations();
-                    break;
-                case "7":
-                    displayTotalRevenue();
-                    break;
-                case "8":
-                    setSeasonalPricing();
-                    break;
-                case "9":
-                    assignCleaningStaffToRoom();
-                    break;
-                case "10":
-                    generateOccupancyReport();
-                    break;
-                case "11":
-                    logComplaint();
-                    break;
-                case "12":
-                    viewUnresolvedComplaints();
-                    break;
-                case "13":
-                    resolveComplaint();
-                    break;
-                case "14":
-                    viewResolvedComplaints();
-                    break;
-                case "15":
-                    System.out.println("Exiting manager menu.");
-                    return;
-                default:
-                    System.out.println("Invalid choice. Please enter a correct option.");
-            }
-        }
-    }
     private static void displayTotalRevenue() {
         double revenue = hotel.calculateTotalRevenue();
         System.out.printf("Total revenue from room bookings: $%.2f\n", revenue);
     }
-    private static void addOrUpdateRoom() {
-        System.out.print("Enter Room Number: ");
-        int roomNumber = Integer.parseInt(scanner.nextLine());
-        System.out.print("Enter Room Type: ");
-        String roomType = scanner.nextLine();
-        System.out.print("Enter Room Price: ");
-        double roomPrice = Double.parseDouble(scanner.nextLine());
-        hotel.addOrUpdateRoom(roomNumber, roomType, roomPrice);
 
-    }
-    private static void viewAvailableRooms() {
-        System.out.print("Enter Check-In Date (yyyy-MM-dd): ");
-        String checkInDateStr = scanner.nextLine();
-        Date checkInDate;
-        try {
-            checkInDate = dateFormat.parse(checkInDateStr);
-        } catch (ParseException e) {
-            System.out.println("Invalid date format. Use yyyy-MM-dd.");
-            return;
-        }
-
-        System.out.print("Enter Check-Out Date (yyyy-MM-dd): ");
-        String checkOutDateStr = scanner.nextLine();
-        Date checkOutDate;
-        try {
-            checkOutDate = dateFormat.parse(checkOutDateStr);
-        } catch (ParseException e) {
-            System.out.println("Invalid date format. Use yyyy-MM-dd.");
-            return;
-        }
-
-        List<Room> availableRooms = hotel.getAvailableRooms(checkInDate, checkOutDate);
-        if (availableRooms.isEmpty()) {
-            System.out.println("No available rooms for the given date range.");
-        } else {
-            System.out.println("Available Rooms:");
-            for (Room room : availableRooms) {
-                System.out.println(room);
-            }
-        }
-    }
     private static void bookRoom() {
         System.out.print("Enter Room Number: ");
         int roomNumber = Integer.parseInt(scanner.nextLine());
@@ -250,42 +696,6 @@ public class MainApp {
                 for (Reservation reservation : reservations) {
                     System.out.println(reservation);
                 }
-            }
-        }
-    }
-    private static void guestMenu() {
-        while (true) {
-            System.out.println("\nGuest Menu:");
-            System.out.println("1. View Available Rooms");
-            System.out.println("2. Book Room");
-            System.out.println("3. View Reservations");
-            System.out.println("4. View Past Reservations");
-            System.out.println("5. Request Additional Service");
-            System.out.println("6. Exit");
-            System.out.print("Enter your choice: ");
-            String choice = scanner.nextLine();
-
-            switch (choice) {
-                case "1":
-                    viewAvailableRooms();
-                    break;
-                case "2":
-                    bookRoom();
-                    break;
-                case "3":
-                    viewReservations();
-                    break;
-                case "4":
-                    viewPastReservations();
-                    break;
-                case "5":
-                    requestAdditionalService();
-                    break;
-                case "6":
-                    System.out.println("Exiting guest menu.");
-                    return;
-                default:
-                    System.out.println("Invalid choice. Please enter a correct option.");
             }
         }
     }
