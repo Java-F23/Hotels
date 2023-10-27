@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.math.BigDecimal;
 import java.util.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,6 +31,7 @@ public class MainApp {
     public static void main(String[] args) {
         guestCredentials.add(new User("guest1", "password1"));
         managerCredentials.add(new User("manager1", "password1"));
+        hotel.addOrUpdateRoom(109,"Single", BigDecimal.valueOf(100.0));
         JFrame frame = new JFrame("Hotel Management System");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setPreferredSize(new Dimension(800, 600));
@@ -67,27 +69,71 @@ public class MainApp {
 
 
 
-        // Manager Login Card
-        JPanel managerLoginCard = new JPanel();
-        JTextField managerUsername = new JTextField(20);
-        JPasswordField managerPassword = new JPasswordField(20);
-        JButton managerSubmit = new JButton("Submit");
-        managerLoginCard.add(new JLabel("Manager Username: "));
-        managerLoginCard.add(managerUsername);
-        managerLoginCard.add(new JLabel("Manager Password: "));
-        managerLoginCard.add(managerPassword);
-        managerLoginCard.add(managerSubmit);
+// Manager Login Card
+        JPanel managerLoginCard = new JPanel(new GridBagLayout());
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.insets = new Insets(5, 5, 5, 5); // Add padding
 
-        // Guest Login Card
-        JPanel guestLoginCard = new JPanel();
-        JTextField guestUsername = new JTextField(20);
-        JPasswordField guestPassword = new JPasswordField(20);
+        JTextField managerUsername = new JTextField(15);
+        managerUsername.setPreferredSize(new Dimension(200, 30));
+        JPasswordField managerPassword = new JPasswordField(15);
+        managerPassword.setPreferredSize(new Dimension(200, 30));
+        JButton managerSubmit = new JButton("Submit");
+        JButton managerBackButton = new JButton("Back");
+
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        managerLoginCard.add(new JLabel("Manager Username: "), constraints);
+
+        constraints.gridx = 1;
+        managerLoginCard.add(managerUsername, constraints);
+
+        constraints.gridx = 0;
+        constraints.gridy = 1;
+        managerLoginCard.add(new JLabel("Manager Password: "), constraints);
+
+        constraints.gridx = 1;
+        managerLoginCard.add(managerPassword, constraints);
+
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        managerLoginCard.add(managerBackButton, constraints);
+
+        constraints.gridx = 1;
+        managerLoginCard.add(managerSubmit, constraints);
+
+// Guest Login Card
+        JPanel guestLoginCard = new JPanel(new GridBagLayout());
+        constraints = new GridBagConstraints();
+        constraints.insets = new Insets(5, 5, 5, 5);
+
+        JTextField guestUsername = new JTextField(15);
+        guestUsername.setPreferredSize(new Dimension(200, 30));
+        JPasswordField guestPassword = new JPasswordField(15);
+        guestPassword.setPreferredSize(new Dimension(200, 30));
         JButton guestSubmit = new JButton("Submit");
-        guestLoginCard.add(new JLabel("Guest Username: "));
-        guestLoginCard.add(guestUsername);
-        guestLoginCard.add(new JLabel("Guest Password: "));
-        guestLoginCard.add(guestPassword);
-        guestLoginCard.add(guestSubmit);
+        JButton guestBackButton = new JButton("Back");
+
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        guestLoginCard.add(new JLabel("Guest Username: "), constraints);
+
+        constraints.gridx = 1;
+        guestLoginCard.add(guestUsername, constraints);
+
+        constraints.gridx = 0;
+        constraints.gridy = 1;
+        guestLoginCard.add(new JLabel("Guest Password: "), constraints);
+
+        constraints.gridx = 1;
+        guestLoginCard.add(guestPassword, constraints);
+
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        guestLoginCard.add(guestBackButton, constraints);
+
+        constraints.gridx = 1;
+        guestLoginCard.add(guestSubmit, constraints);
 
         // Manager Menu Card
         JPanel managerCard = new JPanel();
@@ -115,8 +161,8 @@ public class MainApp {
         addOrUpdateRoomCard.add(new JLabel("Room Price:"));
         addOrUpdateRoomCard.add(roomPriceField);
         addOrUpdateRoomCard.add(submitRoomButton);
-        JButton backButton = new JButton("Back");
-        addOrUpdateRoomCard.add(backButton);
+        JButton backButton_addOrUpdateRoomCard = new JButton("Back");
+        addOrUpdateRoomCard.add(backButton_addOrUpdateRoomCard);
 
 // Create the card for viewAvailableRooms
         JPanel viewAvailableRoomsCard = new JPanel();
@@ -155,9 +201,7 @@ public class MainApp {
         JButton searchButton = new JButton("Search");
         JButton checkInButton = new JButton("Check In");
         JButton backButton_checkInGuest = new JButton("Back");
-        checkInButton.setEnabled(false);  // Disabled by default
-
-
+        checkInButton.setEnabled(false); // Disabled by default
 
 // Panel for Input Fields
         JPanel inputPanel2 = new JPanel();
@@ -172,15 +216,15 @@ public class MainApp {
         checkInGuestCard.add(inputPanel2, BorderLayout.NORTH);
 
 // Table to Display Results
-        String[] columnNames = {"Room Number", "Guest Username", "Check-In Date", "Check-Out Date"};
-        DefaultTableModel model = new DefaultTableModel(null, columnNames);
+        String[] columnNames = {"Reservation ID", "Room Number", "Guest Username", "Check-In Date", "Check-Out Date"};
+        DefaultTableModel model = new DefaultTableModel(null, columnNames); // Update the column names
         JTable table = new JTable(model);
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setPreferredSize(new Dimension(500, 200));
         checkInGuestCard.add(scrollPane, BorderLayout.CENTER);
 
-        // Add Check-In Button
-        // Add the back button to a navigation panel
+// Add Check-In Button
+// Add the back button to a navigation panel
         JPanel navPanel = new JPanel();
         navPanel.add(backButton_checkInGuest);
         navPanel.add(checkInButton);
@@ -188,56 +232,377 @@ public class MainApp {
 
 // Handle the Search Button Click
         searchButton.addActionListener(e -> {
-            if (validateInputFields(guestUsernameField, roomNumberField2, checkInDateField)) {
-                // Validate the date is not in the past
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                try {
-                    Date checkInDate = dateFormat.parse(checkInDateField.getText());
-                    Date currentDate = new Date();
-                    if (checkInDate.before(currentDate)) {
-                        JOptionPane.showMessageDialog(null, "Date is in the past.");
-                        return;
-                    }
-                } catch (ParseException ex) {
-                    JOptionPane.showMessageDialog(null, "Invalid date format. Use yyyy-MM-dd.");
+            // Clear the table before populating with search results
+            model.setRowCount(0);
+
+            // Get the search criteria
+            String guestUsername_Checkin = guestUsernameField.getText();
+            String roomNumberStr = roomNumberField2.getText();
+            String checkInDateStr = checkInDateField.getText();
+
+            // Validate the date is not in the past
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                Date checkInDate = dateFormat.parse(checkInDateStr);
+                Date currentDate = new Date();
+                if (checkInDate.before(currentDate)) {
+                    JOptionPane.showMessageDialog(null, "Date is in the past.");
                     return;
                 }
-
-                // Call checkInGuest_List from hotel.java and update the table with the result
-                // ... your existing code to call checkInGuest_List and update the table
-
-                checkInButton.setEnabled(true);  // Enable the Check In button if search was successful
-            } else {
-                JOptionPane.showMessageDialog(null, "Please enter valid information.");
-                checkInButton.setEnabled(false);
+            } catch (ParseException ex) {
+                JOptionPane.showMessageDialog(null, "Invalid date format. Use yyyy-MM-dd.");
+                return;
             }
+
+            // Call a method to search for reservations based on the criteria
+            List<Reservation> searchResults = hotel.searchReservations(guestUsername_Checkin, roomNumberStr, checkInDateStr);
+
+            // Populate the table with search results
+            for (Reservation reservation : searchResults) {
+                model.addRow(new Object[]{
+                        reservation.getReservationID(), // Add reservation ID
+                        reservation.getRoom().getRoomNumber(),
+                        reservation.getGuest().getUsername(),
+                        reservation.getCheckInDate(),
+                        reservation.getCheckOutDate()
+                });
+            }
+            checkInButton.setEnabled(!searchResults.isEmpty()); // Enable the Check In button if there are results
         });
 
 // Handle the Check-In Button Click
         checkInButton.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row != -1) {
-                // Your existing code to call the check-in method in hotel.java
+                int reservationID = (int) table.getValueAt(row, 0); // Assuming reservation ID is in the first column
+                Reservation selectedReservation = hotel.getSelectedReservationByID(reservationID);
+                try {
+                    hotel.checkInGuest(selectedReservation.getRoom().getRoomNumber(), selectedReservation.getGuest().getUsername(), selectedReservation.getCheckInDate());
+                    model.removeRow(row);
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+
             } else {
                 JOptionPane.showMessageDialog(null, "No reservation selected for check-in.");
             }
         });
 
 
-// Create the card for checkOutGuestCard
-        JPanel checkOutGuestCard = new JPanel();
+// Create the card for CheckOutGuestCard
+        JPanel checkOutGuestCard = new JPanel(new BorderLayout());
 
-        // Create the card for viewReservationsCard
-        JPanel viewReservationsCard = new JPanel();
+// Create Input Fields and Buttons
+        JTextField guestUsernameField_CheckOut = new JTextField(15);
+        JTextField roomNumberField_CheckOut = new JTextField(5);
+        JFormattedTextField checkInDateField_CheckOut = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd"));
+        checkInDateField_CheckOut.setPreferredSize(new Dimension(100, 20));
+        JButton searchButton_CheckOut = new JButton("Search");
+        JButton checkOutButton_CheckOut = new JButton("Check Out");
+        JButton backButton_CheckOut = new JButton("Back");
+        checkOutButton_CheckOut.setEnabled(false); // Disabled by default
 
-        // Create the card for viewPastReservationsCard
-        JPanel viewPastReservationsCard = new JPanel();
+// Panel for Input Fields
+        JPanel inputPanel_CheckOut = new JPanel();
+        inputPanel_CheckOut.add(new JLabel("Guest Username: "));
+        inputPanel_CheckOut.add(guestUsernameField_CheckOut);
+        inputPanel_CheckOut.add(new JLabel("Room Number: "));
+        inputPanel_CheckOut.add(roomNumberField_CheckOut);
+        inputPanel_CheckOut.add(new JLabel("Check-In Date (yyyy-MM-dd): "));
+        checkInDateField_CheckOut.setText("yyyy-MM-dd");
+        inputPanel_CheckOut.add(checkInDateField_CheckOut);
+        inputPanel_CheckOut.add(searchButton_CheckOut);
+        checkOutGuestCard.add(inputPanel_CheckOut, BorderLayout.NORTH);
 
-        // Create the card for calculateTotalRevenueCard
-        JPanel calculateTotalRevenueCard = new JPanel();
+// Table to Display Results
+        String[] columnNames_CheckOut = {"Reservation ID", "Room Number", "Guest Username", "Check-In Date", "Check-Out Date"};
+        DefaultTableModel model_CheckOut = new DefaultTableModel(null, columnNames_CheckOut); // Update the column names
+        JTable table_CheckOut = new JTable(model_CheckOut);
+        JScrollPane scrollPane_CheckOut = new JScrollPane(table_CheckOut);
+        scrollPane_CheckOut.setPreferredSize(new Dimension(500, 200));
+        checkOutGuestCard.add(scrollPane_CheckOut, BorderLayout.CENTER);
 
-        // Create the card for setSeasonalPricingCard
-        JPanel setSeasonalPricingCard = new JPanel();
+// Add Check Out Button
+// Add the back button to a navigation panel
+        JPanel navPanel_CheckOut = new JPanel();
+        navPanel_CheckOut.add(backButton_CheckOut);
+        navPanel_CheckOut.add(checkOutButton_CheckOut);
+        checkOutGuestCard.add(navPanel_CheckOut, BorderLayout.SOUTH);
+
+// Handle the Search Button Click for Check Out
+        searchButton_CheckOut.addActionListener(e -> {
+            // Clear the table before populating with search results
+            model_CheckOut.setRowCount(0);
+
+            // Get the search criteria
+            String guestUsername_CheckOut = guestUsernameField_CheckOut.getText();
+            String roomNumberStr_CheckOut = roomNumberField_CheckOut.getText();
+            String checkInDateStr_CheckOut = checkInDateField_CheckOut.getText();
+
+            // Validate the date is not in the past
+            SimpleDateFormat dateFormat_CheckOut = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                Date checkInDate_CheckOut = dateFormat_CheckOut.parse(checkInDateStr_CheckOut);
+                Date currentDate_CheckOut = new Date();
+                if (checkInDate_CheckOut.before(currentDate_CheckOut)) {
+                    JOptionPane.showMessageDialog(null, "Date is in the past.");
+                    return;
+                }
+            } catch (ParseException ex) {
+                JOptionPane.showMessageDialog(null, "Invalid date format. Use yyyy-MM-dd.");
+                return;
+            }
+
+            // Call a method to search for reservations based on the criteria
+            List<Reservation> searchResults_CheckOut = hotel.searchReservations(guestUsername_CheckOut, roomNumberStr_CheckOut, checkInDateStr_CheckOut);
+
+            // Populate the table with search results
+            for (Reservation reservation : searchResults_CheckOut) {
+                model_CheckOut.addRow(new Object[]{
+                        reservation.getReservationID(), // Add reservation ID
+                        reservation.getRoom().getRoomNumber(),
+                        reservation.getGuest().getUsername(),
+                        reservation.getCheckInDate(),
+                        reservation.getCheckOutDate()
+                });
+            }
+            checkOutButton_CheckOut.setEnabled(!searchResults_CheckOut.isEmpty()); // Enable the Check Out button if there are results
+        });
+
+// Handle the Check Out Button Click
+        checkOutButton_CheckOut.addActionListener(e -> {
+            int row_CheckOut = table_CheckOut.getSelectedRow();
+            if (row_CheckOut != -1) {
+                int reservationID_CheckOut = (int) table_CheckOut.getValueAt(row_CheckOut, 0); // Assuming reservation ID is in the first column
+                Reservation selectedReservation_CheckOut = hotel.getSelectedReservationByID(reservationID_CheckOut);
+                try {
+                    hotel.checkOutGuest(selectedReservation_CheckOut.getRoom().getRoomNumber(), selectedReservation_CheckOut.getGuest().getUsername(), selectedReservation_CheckOut.getCheckInDate());
+                    model_CheckOut.removeRow(row_CheckOut);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, ex);
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "No reservation selected for check-out.");
+            }
+        });
+
+// Handle the Back Button Click for Check Out
+        backButton_CheckOut.addActionListener(e -> {
+            cardLayout.show(cardPanel, "ManagerCard"); // Navigate back to the Manager card
+            // Clear input fields when going back
+            guestUsernameField_CheckOut.setText("");
+            roomNumberField_CheckOut.setText("");
+            checkInDateField_CheckOut.setValue(null);
+        });
+
+
+// Create the card for viewReservations
+        JPanel viewReservationsCard = new JPanel(new BorderLayout());
+        // Create a panel for the buttons
+        JPanel buttonPanel = new JPanel();
+        // Create the View Reservations button
+        JButton viewReservationsButton = new JButton("View Reservations");
+
+// Add the View Reservations button to the button panel
+        buttonPanel.add(viewReservationsButton);
+
+        // Create a back button
+        JButton backButton_viewReservations = new JButton("Back");
+        buttonPanel.add(backButton_viewReservations);
+// Add the button panel to the viewReservationsCard
+        viewReservationsCard.add(buttonPanel, BorderLayout.NORTH);
+
+
+// Add ActionListener to the back button
+        backButton_viewReservations.addActionListener(e -> {
+            if (loggedInUser instanceof Manager) {
+                // Switch to the Manager Menu
+                cardLayout.show(cardPanel, "ManagerCard");
+            } else if (loggedInUser instanceof Guest) {
+                // Switch to the Guest Menu
+                cardLayout.show(cardPanel, "GuestCard");
+            }
+        });
+
+// Table to Display Reservations
+        String[] columnNames_viewReservations =  {"Reservation ID", "Room Number", "Guest Username", "Check-In Date", "Check-Out Date", "Total Price"};
+        DefaultTableModel model_viewReservations = new DefaultTableModel(null, columnNames_viewReservations);
+        JTable table_viewReservations = new JTable(model_viewReservations);
+        JScrollPane scrollPane_viewReservations = new JScrollPane(table_viewReservations);
+        scrollPane_viewReservations.setPreferredSize(new Dimension(600, 300));
+        viewReservationsCard.add(scrollPane_viewReservations, BorderLayout.CENTER);
+
+// Handle the View Reservations Button Click
+        viewReservationsButton.addActionListener(e -> {
+            if (loggedInUser instanceof Guest) {
+                List<Reservation> reservations = hotel.getReservationsForGuest((Guest) loggedInUser);
+                model_viewReservations.setRowCount(0); // Clear the table
+
+                if (reservations.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "You have no current reservations.");
+                } else {
+                    for (Reservation reservation : reservations) {
+                        BigDecimal totalPrice = reservation.getTotalPrice(); // Get the total price
+                        model_viewReservations.addRow(new Object[]{
+                                reservation.getReservationID(),
+                                reservation.getRoom().getRoomNumber(),
+                                reservation.getGuest().getUsername(),
+                                reservation.getCheckInDate(),
+                                reservation.getCheckOutDate(),
+                                totalPrice // Add the total price to the table
+                        });
+                    }
+                }
+            } else if (loggedInUser instanceof Manager) {
+                List<Reservation> reservations = hotel.getAllReservations();
+                model_viewReservations.setRowCount(0); // Clear the table
+
+                if (reservations.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "No reservations found.");
+                } else {
+
+                    for (Reservation reservation : reservations) {
+                        BigDecimal totalPrice = reservation.getTotalPrice(); // Get the total price
+                        model_viewReservations.addRow(new Object[]{
+                                reservation.getReservationID(),
+                                reservation.getRoom().getRoomNumber(),
+                                reservation.getGuest().getUsername(),
+                                reservation.getCheckInDate(),
+                                reservation.getCheckOutDate(),
+                                totalPrice // Add the total price to the table
+                        });
+                    }
+                }
+            }
+            // Enable the back button after displaying the reservations
+            backButton_viewReservations.setEnabled(true);
+        });
+
+
+// Create the card for DisplayTotalRevenueCard
+        JPanel displayTotalRevenueCard = new JPanel(new BorderLayout());
+
+        JLabel totalRevenueLabel = new JLabel();
+        JButton calculateRevenueButton = new JButton("Calculate Total Revenue");
+        JButton backButton_DisplayTotalRevenue = new JButton("Back");
+        JPanel buttonPanel_DisplayTotalRevenue = new JPanel();
+        buttonPanel_DisplayTotalRevenue.add(calculateRevenueButton);
+        buttonPanel_DisplayTotalRevenue.add(backButton_DisplayTotalRevenue); // Add the "Back" button
+        displayTotalRevenueCard.add(totalRevenueLabel, BorderLayout.CENTER);
+        displayTotalRevenueCard.add(buttonPanel_DisplayTotalRevenue, BorderLayout.SOUTH);
+
+// Handle the Calculate Total Revenue Button Click
+        calculateRevenueButton.addActionListener(e -> {
+            // Calculate the total revenue
+            BigDecimal revenue = hotel.calculateTotalRevenue();
+            // Update the label with the total revenue
+            totalRevenueLabel.setText("Total revenue from room bookings: $" + revenue.toString());
+        });
+
+// Handle the Back Button Click for Display Total Revenue
+        backButton_DisplayTotalRevenue.addActionListener(e -> {
+            cardLayout.show(cardPanel, "ManagerCard"); // Navigate back to the Manager card (or the appropriate card)
+            // Clear the total revenue label when going back
+            totalRevenueLabel.setText("");
+        });
+
+
+// Create the card for SetSeasonalPricingCard
+        JPanel setSeasonalPricingCard = new JPanel(new BorderLayout());
+
+// Create Input Fields and Button
+        JFormattedTextField startDateField = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd"));
+        JFormattedTextField endDateField = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd"));
+        JTextField multiplierField = new JTextField(5);
+        startDateField.setPreferredSize(new Dimension(100, 20));
+        endDateField.setPreferredSize(new Dimension(100, 20));
+        JButton setSeasonalPricingButton = new JButton("Set Seasonal Pricing");
+        JButton backButton_SetSeasonalPricing = new JButton("Back");
+
+// Create a panel for input fields and labels using GridBagLayout
+        JPanel inputPanel_SetSeasonalPricing = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(5, 5, 5, 5); // Add some padding
+
+        inputPanel_SetSeasonalPricing.add(new JLabel("Season Start Date (yyyy-MM-dd): "), gbc);
+        gbc.gridx = 1;
+        inputPanel_SetSeasonalPricing.add(startDateField, gbc);
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        inputPanel_SetSeasonalPricing.add(new JLabel("Season End Date (yyyy-MM-dd): "), gbc);
+        gbc.gridx = 1;
+        inputPanel_SetSeasonalPricing.add(endDateField, gbc);
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        inputPanel_SetSeasonalPricing.add(new JLabel("Price Multiplier (e.g., 1.5 for 50% increase): "), gbc);
+        gbc.gridx = 1;
+        inputPanel_SetSeasonalPricing.add(multiplierField, gbc);
+        gbc.gridy = 3;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2; // Span across two columns
+        inputPanel_SetSeasonalPricing.add(setSeasonalPricingButton, gbc);
+
+// Add the Back button to a navigation panel
+        JPanel navPanel_SetSeasonalPricing = new JPanel();
+        navPanel_SetSeasonalPricing.add(backButton_SetSeasonalPricing);
+
+// Add input panel and navigation panel to setSeasonalPricingCard
+        setSeasonalPricingCard.add(inputPanel_SetSeasonalPricing, BorderLayout.NORTH);
+        setSeasonalPricingCard.add(navPanel_SetSeasonalPricing, BorderLayout.SOUTH);
+
+// Handle the Set Seasonal Pricing Button Click
+        setSeasonalPricingButton.addActionListener(e -> {
+            // Get the input values
+            Date startDate = (Date) startDateField.getValue();
+            Date endDate = (Date) endDateField.getValue();
+            String multiplierStr = multiplierField.getText();
+
+            // Validate the input values
+            if (startDate == null || endDate == null) {
+                JOptionPane.showMessageDialog(null, "Please enter valid start and end dates.");
+                return;
+            }
+
+            // Get the current date
+            Date currentDate = new Date();
+
+            // Check if the start date is in the past
+            if (startDate.before(currentDate)) {
+                JOptionPane.showMessageDialog(null, "Start date cannot be in the past.");
+                return;
+            }
+
+            if (startDate.after(endDate)) {
+                JOptionPane.showMessageDialog(null, "Start date cannot be after end date.");
+                return;
+            }
+
+            if (!isValidMultiplier(multiplierStr)) {
+                JOptionPane.showMessageDialog(null, "Please enter a valid price multiplier (e.g., 1.5 for 50% increase).");
+                return;
+            }
+
+            double multiplier = Double.parseDouble(multiplierStr);
+
+            // Call a method to set seasonal pricing
+            hotel.setSeasonalPrice(startDate, endDate, multiplier);
+
+            // Display a success message
+            JOptionPane.showMessageDialog(null, "Seasonal pricing set successfully.");
+        });
+
+
+// Handle the Back Button Click for Set Seasonal Pricing
+        backButton_SetSeasonalPricing.addActionListener(e -> {
+            cardLayout.show(cardPanel, "ManagerCard"); // Navigate back to the Manager card
+            // Clear input fields when going back
+            startDateField.setValue(null);
+            endDateField.setValue(null);
+            multiplierField.setText("");
+        });
+
 
         // Create the card for generateOccupancyReportCard
         JPanel generateOccupancyReportCard = new JPanel();
@@ -278,7 +643,7 @@ public class MainApp {
                         cardLayout.show(cardPanel, "viewPastReservationsCard");
                         break;
                     case "Calculate Total Revenue":
-                        cardLayout.show(cardPanel, "calculateTotalRevenueCard");
+                        cardLayout.show(cardPanel, "displayTotalRevenueCard");
                         break;
                     case "Set Seasonal Pricing":
                         cardLayout.show(cardPanel, "setSeasonalPricingCard");
@@ -345,16 +710,294 @@ public class MainApp {
         Guest_viewAvailableRoomsCard.add(Guest_navPanel2, BorderLayout.SOUTH);
 
         // Create the card for BookRoom
-        JPanel Guest_BookRoom = new JPanel();
+// Create the card for searching and booking rooms
+        JPanel searchAndBookRoomCard = new JPanel(new BorderLayout());
 
-        // Create the card for ViewReservations
-        JPanel Guest_ViewReservations = new JPanel();
+// Create Input Fields and Buttons
+        JFormattedTextField checkInDateField_BookRoom = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd"));
+        JFormattedTextField checkOutDateField_BookRoom = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd"));
+        checkInDateField_BookRoom.setPreferredSize(new Dimension(100, 20));
+        checkOutDateField_BookRoom.setPreferredSize(new Dimension(100, 20));
+        JButton searchButton_BookRoom = new JButton("Search");
+        JButton bookButton_BookRoom = new JButton("Book Selected Room");
+        bookButton_BookRoom.setEnabled(false); // Disabled by default
+        JButton backButton_BookRoom = new JButton("Back");
 
-        // Create the card for ViewPastReservations
-        JPanel Guest_ViewPastReservations = new JPanel();
+// Panel for Input Fields
+        JPanel inputPanel_BookRoom = new JPanel();
+        inputPanel_BookRoom.add(new JLabel("Check-In Date (yyyy-MM-dd): "));
+        inputPanel_BookRoom.add(checkInDateField_BookRoom);
+        inputPanel_BookRoom.add(new JLabel("Check-Out Date (yyyy-MM-dd): "));
+        inputPanel_BookRoom.add(checkOutDateField_BookRoom);
+        inputPanel_BookRoom.add(searchButton_BookRoom);
 
-        // Create the card for RequestAdditionalService
-        JPanel Guest_RequestAdditionalService = new JPanel();
+        searchAndBookRoomCard.add(inputPanel_BookRoom, BorderLayout.NORTH);
+
+// Table to Display Search Results
+        String[] columnNames_BookRoom = {"Room Number", "Room Type", "Price"};
+        DefaultTableModel model_BookRoom = new DefaultTableModel(null, columnNames_BookRoom);
+        JTable table_BookRoom = new JTable(model_BookRoom);
+        JScrollPane scrollPane_BookRoom = new JScrollPane(table_BookRoom);
+        scrollPane_BookRoom.setPreferredSize(new Dimension(500, 200));
+        searchAndBookRoomCard.add(scrollPane_BookRoom, BorderLayout.CENTER);
+
+// Add Book and Back Button
+        JPanel searchAndBookRoomCard_navPanel = new JPanel();
+        searchAndBookRoomCard_navPanel.add(backButton_BookRoom);
+        searchAndBookRoomCard_navPanel.add(bookButton_BookRoom);
+        searchAndBookRoomCard.add(searchAndBookRoomCard_navPanel, BorderLayout.SOUTH);
+
+// Handle the Search Button Click
+        searchButton_BookRoom.addActionListener(e -> {
+            Date checkInDate = (Date) checkInDateField_BookRoom.getValue();
+            Date checkOutDate = (Date) checkOutDateField_BookRoom.getValue();
+
+            // Validate the selected dates
+            if (checkInDate == null || checkOutDate == null || checkOutDate.before(checkInDate) || checkInDate.before(new Date())) {
+                JOptionPane.showMessageDialog(null, "Please select valid check-in and check-out dates.");
+                return; // Exit the method if dates are invalid
+            }
+
+            // Call a method to search for available rooms based on the date range
+            List<Room> availableRooms = hotel.getAvailableRooms(checkInDate, checkOutDate);
+
+            // Clear the table
+            model_BookRoom.setRowCount(0);
+
+            // Populate the table with search results
+            for (Room room : availableRooms) {
+                model_BookRoom.addRow(new Object[]{room.getRoomNumber(), room.getRoomType(), room.getPrice()});
+            }
+
+            // Enable the book button if there are available rooms
+            bookButton_BookRoom.setEnabled(!availableRooms.isEmpty());
+        });
+
+// Handle the Book Button Click
+        bookButton_BookRoom.addActionListener(e -> {
+            int selectedRow = table_BookRoom.getSelectedRow();
+            if (selectedRow != -1) {
+                int roomNumber = (int) table_BookRoom.getValueAt(selectedRow, 0);
+                Date checkInDate = (Date) checkInDateField_BookRoom.getValue();
+                Date checkOutDate = (Date) checkOutDateField_BookRoom.getValue();
+
+                // Validate the selected dates again
+                if (checkInDate == null || checkOutDate == null || checkOutDate.before(checkInDate) || checkInDate.before(new Date())) {
+                    JOptionPane.showMessageDialog(null, "Please select valid check-in and check-out dates.");
+                    return; // Exit the method if dates are invalid
+                }
+
+                // Call a method to book the selected room
+                boolean bookingResult = false;
+                try {
+                    bookingResult = hotel.bookRoom(roomNumber, checkInDate, checkOutDate, (Guest) loggedInUser);
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+
+                if (bookingResult) {
+                    // Display a success message in the GUI
+                    JOptionPane.showMessageDialog(null, "Room booked successfully.");
+                    // Update the table to remove the booked room
+                    model_BookRoom.removeRow(selectedRow);
+                } else {
+                    // Display an error message if booking fails
+                    JOptionPane.showMessageDialog(null, "Room booking failed. Please check availability.");
+                }
+            } else {
+                // No room selected, show a message
+                JOptionPane.showMessageDialog(null, "Please select a room to book.");
+            }
+        });
+
+// Create the card for viewPastReservationsCard
+            JPanel viewPastReservationsCard = new JPanel(new BorderLayout());
+
+            // Create Input Fields and Buttons
+            JTextField guestUsernameField_Past = new JTextField(15);
+            JFormattedTextField checkInDateField_Past = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd"));
+        checkInDateField_Past.setPreferredSize(new Dimension(100, 20));
+            JButton searchButton_Past = new JButton("Search");
+            JButton backButton_Past = new JButton("Back");
+
+            // Panel for Input Fields
+            JPanel inputPanel_Past = new JPanel();
+            inputPanel_Past.add(new JLabel("Guest Username: "));
+            inputPanel_Past.add(guestUsernameField_Past);
+            inputPanel_Past.add(new JLabel("Check-Out Date (yyyy-MM-dd): "));
+            inputPanel_Past.add(checkInDateField_Past);
+            inputPanel_Past.add(searchButton_Past);
+            viewPastReservationsCard.add(inputPanel_Past, BorderLayout.NORTH);
+
+            // Table to Display Past Reservations
+            String[] columnNames_Past = {"Reservation ID", "Room Number", "Guest Username", "Check-In Date", "Check-Out Date", "Total Price"};
+            DefaultTableModel model_Past = new DefaultTableModel(null, columnNames_Past);
+            JTable table_Past = new JTable(model_Past);
+            JScrollPane scrollPane_Past = new JScrollPane(table_Past);
+            scrollPane_Past.setPreferredSize(new Dimension(600, 300));
+            viewPastReservationsCard.add(scrollPane_Past, BorderLayout.CENTER);
+
+            // Add Back Button
+            JPanel navPanel_Past = new JPanel();
+            navPanel_Past.add(backButton_Past);
+            viewPastReservationsCard.add(navPanel_Past, BorderLayout.SOUTH);
+
+        // Handle the Search Button Click for Past Reservations
+        searchButton_Past.addActionListener(e -> {
+            String guestUsername_past = guestUsernameField_Past.getText();
+            String checkInDateStr = checkInDateField_Past.getText();
+
+            // Validate input fields here (e.g., check for valid date format)
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            dateFormat.setLenient(false); // Disallow lenient parsing
+
+            try {
+                if (!guestUsername_past.isEmpty() && !checkInDateStr.isEmpty()) {
+                    // Search by both guest username and check-in date
+                    Date checkInDate = dateFormat.parse(checkInDateStr);
+                    List<Reservation> pastReservations = hotel.searchPastReservations(guestUsername_past, checkInDateStr);
+
+                    // Clear the table
+                    model_Past.setRowCount(0);
+
+                    // Populate the table with past reservation details
+                    for (Reservation pastReservation : pastReservations) {
+                        model_Past.addRow(new Object[]{
+                                pastReservation.getReservationID(),
+                                pastReservation.getRoom().getRoomNumber(),
+                                pastReservation.getGuest().getUsername(),
+                                pastReservation.getCheckInDate(),
+                                pastReservation.getCheckOutDate(),
+                                pastReservation.getTotalPrice()
+                        });
+                    }
+                } else if (!guestUsername_past.isEmpty()) {
+                    // Search by guest username only
+                    List<Reservation> pastReservations = hotel.searchPastReservationsByGuest(guestUsername_past);
+
+                    // Clear the table
+                    model_Past.setRowCount(0);
+
+                    // Populate the table with past reservation details
+                    for (Reservation pastReservation : pastReservations) {
+                        model_Past.addRow(new Object[]{
+                                pastReservation.getReservationID(),
+                                pastReservation.getRoom().getRoomNumber(),
+                                pastReservation.getGuest().getUsername(),
+                                pastReservation.getCheckInDate(),
+                                pastReservation.getCheckOutDate(),
+                                pastReservation.getTotalPrice()
+                        });
+                    }
+                } else if (!checkInDateStr.isEmpty()) {
+                    // Search by check-in date only
+                    Date checkInDate = dateFormat.parse(checkInDateStr);
+                    List<Reservation> pastReservations = hotel.searchPastReservationsByDate(checkInDate);
+
+                    // Clear the table
+                    model_Past.setRowCount(0);
+
+                    // Populate the table with past reservation details
+                    for (Reservation pastReservation : pastReservations) {
+                        model_Past.addRow(new Object[]{
+                                pastReservation.getReservationID(),
+                                pastReservation.getRoom().getRoomNumber(),
+                                pastReservation.getGuest().getUsername(),
+                                pastReservation.getCheckInDate(),
+                                pastReservation.getCheckOutDate(),
+                                pastReservation.getTotalPrice()
+                        });
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Please enter guest username or check-in date.");
+                }
+            } catch (ParseException ex) {
+                JOptionPane.showMessageDialog(null, "Invalid date format. Use yyyy-MM-dd.");
+            }
+        });
+
+
+        // Handle the Back Button Click for Past Reservations
+            backButton_Past.addActionListener(e -> {
+                // Clear input fields and table
+                guestUsernameField_Past.setText("");
+                checkInDateField_Past.setText("");
+                model_Past.setRowCount(0);
+
+                // Navigate back to the respective menu based on the logged-in user
+                if (loggedInUser instanceof Manager) {
+                    cardLayout.show(cardPanel, "ManagerCard");
+                } else if (loggedInUser instanceof Guest) {
+                    cardLayout.show(cardPanel, "GuestCard");
+                }
+            });
+
+
+// Create the card for RequestAdditionalService
+        JPanel requestAdditionalServiceCard = new JPanel(new BorderLayout());
+
+// Create Input Fields and Buttons
+        JComboBox<String> serviceTypeComboBox = new JComboBox<>(getRelevantServiceTypes()); // Replace with a method to get relevant service types
+        JFormattedTextField serviceDateField = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd"));
+        serviceDateField.setPreferredSize(new Dimension(100, 20));
+        JButton requestServiceButton = new JButton("Request Service");
+        JButton backButton_requestService = new JButton("Back");
+
+// Panel for Input Fields
+        JPanel inputPanel_requestService = new JPanel();
+        inputPanel_requestService.add(new JLabel("Service Type: "));
+        inputPanel_requestService.add(serviceTypeComboBox);
+        inputPanel_requestService.add(new JLabel("Service Date (yyyy-MM-dd): "));
+        inputPanel_requestService.add(serviceDateField);
+        inputPanel_requestService.add(requestServiceButton);
+        requestAdditionalServiceCard.add(inputPanel_requestService, BorderLayout.NORTH);
+
+// Add Back Button
+        JPanel requestAdditionalServiceCard_navPanel = new JPanel();
+        requestAdditionalServiceCard_navPanel.add(backButton_requestService);
+        requestAdditionalServiceCard.add(requestAdditionalServiceCard_navPanel, BorderLayout.SOUTH);
+
+
+// Handle the Request Service Button Click
+        requestServiceButton.addActionListener(e -> {
+            String serviceType = (String) serviceTypeComboBox.getSelectedItem(); // Get the selected service type from the JComboBox
+            Date serviceDate = (Date) serviceDateField.getValue();
+
+            // Validate the selected date
+            if (serviceDate == null) {
+                JOptionPane.showMessageDialog(null, "Please select a valid service date.");
+                return; // Exit the method if the date is invalid
+            }
+
+            if (serviceType.isEmpty() || serviceDate == null) {
+                JOptionPane.showMessageDialog(null, "Please enter valid information.");
+            } else {
+                if (loggedInUser instanceof Guest) {
+                    Guest requestingGuest = (Guest) loggedInUser;
+
+                    if (hotel.hasActiveReservation(requestingGuest, serviceDate)) {
+                        ServiceRequest serviceRequest = new ServiceRequest(requestingGuest, serviceType, serviceDate);
+                        hotel.logServiceRequest(serviceRequest);
+                        JOptionPane.showMessageDialog(null, "Service request for " + serviceType + " has been submitted.");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "No active reservation found for the specified date.");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Only guests can request additional services.");
+                }
+            }
+        });
+
+// Handle the Back Button Click
+        backButton_requestService.addActionListener(e -> {
+            cardLayout.show(cardPanel, "GuestCard");
+            // Clear input fields when going back
+            serviceTypeComboBox.setSelectedIndex(0); // Reset the JComboBox to the first item (or initial state)
+            serviceDateField.setValue(null);
+
+        });
+
+
 
         for (String option : guestOptions) {
             JButton button = new JButton(option);
@@ -365,16 +1008,16 @@ public class MainApp {
                         cardLayout.show(cardPanel, "Guest_viewAvailableRoomsCard");
                         break;
                     case "Book Room":
-                        cardLayout.show(cardPanel, "Guest_BookRoom");
+                        cardLayout.show(cardPanel, "searchAndBookRoomCard");
                         break;
                     case "View Reservations":
-                        cardLayout.show(cardPanel, "Guest_ViewReservations");
+                        cardLayout.show(cardPanel, "viewReservationsCard");
                         break;
                     case "View Past Reservations":
-                        cardLayout.show(cardPanel, "Guest_ViewPastReservations");
+                        cardLayout.show(cardPanel, "viewPastReservationsCard");
                         break;
                     case "Request Additional Service":
-                        cardLayout.show(cardPanel, "Guest_RequestAdditionalService");
+                        cardLayout.show(cardPanel, "requestAdditionalServiceCard");
                         break;
                     default:
                         System.out.println("No matching action for this button");
@@ -396,11 +1039,20 @@ public class MainApp {
         cardPanel.add(viewAvailableRoomsCard, "viewAvailableRoomsCard");
         cardPanel.add(checkInGuestCard, "checkInGuestCard");
         cardPanel.add(Guest_viewAvailableRoomsCard, "Guest_viewAvailableRoomsCard");
+        cardPanel.add(searchAndBookRoomCard, "searchAndBookRoomCard");
+        cardPanel.add(viewReservationsCard, "viewReservationsCard");
+        cardPanel.add(viewPastReservationsCard, "viewPastReservationsCard");
+        cardPanel.add(requestAdditionalServiceCard, "requestAdditionalServiceCard");
+        cardPanel.add(checkOutGuestCard, "checkOutGuestCard");
+        cardPanel.add(setSeasonalPricingCard, "setSeasonalPricingCard");
+        cardPanel.add(displayTotalRevenueCard, "displayTotalRevenueCard");
 
         // Button actions
         addActionToButton(managerButton, cardPanel, cardLayout, "ManagerLoginCard");
         addActionToButton(guestButton, cardPanel, cardLayout, "GuestLoginCard");
         addActionToButton(exitButton, cardPanel, cardLayout, "Exit");
+        addActionToButton(managerBackButton, cardPanel, cardLayout, "WelcomeCard");
+        addActionToButton(guestBackButton, cardPanel, cardLayout, "WelcomeCard");
 
         logoutButtonM.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -531,14 +1183,22 @@ public class MainApp {
                 int roomNumber = Integer.parseInt(roomNumberField.getText());
                 String roomType = roomTypeField.getText();
                 double roomPrice = Double.parseDouble(roomPriceField.getText());
-                hotel.addOrUpdateRoom(roomNumber, roomType, roomPrice);
+                hotel.addOrUpdateRoom(roomNumber, roomType, BigDecimal.valueOf(roomPrice));
             } catch (NumberFormatException Numbe) {
                 // Handle the exception. For example, show a dialog to inform the user that they've entered invalid data
                 JOptionPane.showMessageDialog(null, "Please enter valid numbers for room number and room price.");
             }
         });
 
-        backButton.addActionListener(e -> {
+        backButton_BookRoom.addActionListener(e -> {
+            checkInDateField_BookRoom.setText("");
+            checkOutDateField_BookRoom.setText("");
+            cardLayout.show(cardPanel, "GuestCard");
+        });
+        backButton_addOrUpdateRoomCard.addActionListener(e -> {
+            roomNumberField.setText("");
+            roomTypeField.setText("");
+            roomPriceField.setText("");
             cardLayout.show(cardPanel, "ManagerCard");
         });
         backButton_viewAvailableRooms.addActionListener(e -> {
@@ -553,14 +1213,12 @@ public class MainApp {
             checkInDateField.setText("");
             cardLayout.show(cardPanel, "ManagerCard");
         });
-
         Guest_backButton_viewAvailableRooms.addActionListener(e -> {
             Guest_checkInField.setText("");
             Guest_checkOutField.setText("");
             Guest_roomListArea.setText("");
             cardLayout.show(cardPanel, "GuestCard");
         });
-
         // Exit the application
         exitButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -572,6 +1230,15 @@ public class MainApp {
         frame.pack();
         frame.setVisible(true);
 
+    }
+
+    private static boolean isValidMultiplier(String multiplierStr) {
+        try {
+            double multiplier = Double.parseDouble(multiplierStr);
+            return multiplier > 0; // Validate that the multiplier is greater than 0
+        } catch (NumberFormatException e) {
+            return false; // Invalid input, not a valid double
+        }
     }
 
     // Helper Method to Validate Input Fields
@@ -641,64 +1308,6 @@ public class MainApp {
         return null;
     }
 
-    private static void displayTotalRevenue() {
-        double revenue = hotel.calculateTotalRevenue();
-        System.out.printf("Total revenue from room bookings: $%.2f\n", revenue);
-    }
-
-    private static void bookRoom() {
-        System.out.print("Enter Room Number: ");
-        int roomNumber = Integer.parseInt(scanner.nextLine());
-        System.out.print("Enter Check-In Date (yyyy-MM-dd): ");
-        String checkInDateStr = scanner.nextLine();
-        Date checkInDate;
-        try {
-            checkInDate = dateFormat.parse(checkInDateStr);
-        } catch (ParseException e) {
-            System.out.println("Invalid date format. Use yyyy-MM-dd.");
-            return;
-        }
-
-        System.out.print("Enter Check-Out Date (yyyy-MM-dd): ");
-        String checkOutDateStr = scanner.nextLine();
-        Date checkOutDate;
-        try {
-            checkOutDate = dateFormat.parse(checkOutDateStr);
-        } catch (ParseException e) {
-            System.out.println("Invalid date format. Use yyyy-MM-dd.");
-            return;
-        }
-
-        try {
-            hotel.bookRoom(roomNumber, checkInDate, checkOutDate, (Guest) loggedInUser);
-        } catch (Exception e) {
-            // Handle the exception appropriately
-            System.out.println("Error while booking the room: " + e.getMessage());
-        }
-    }
-    private static void viewReservations() {
-        if (loggedInUser instanceof Guest) {
-            List<Reservation> reservations = hotel.getReservationsForGuest((Guest) loggedInUser);
-            if (reservations.isEmpty()) {
-                System.out.println("You have no current reservations.");
-            } else {
-                System.out.println("Your Current Reservations:");
-                for (Reservation reservation : reservations) {
-                    System.out.println(reservation);
-                }
-            }
-        } else if (loggedInUser instanceof Manager) {
-            List<Reservation> reservations = hotel.getAllReservations();
-            if (reservations.isEmpty()) {
-                System.out.println("No reservations found.");
-            } else {
-                System.out.println("All Reservations:");
-                for (Reservation reservation : reservations) {
-                    System.out.println(reservation);
-                }
-            }
-        }
-    }
     private static void generateOccupancyReport() {
         if (loggedInUser instanceof Manager) {
             System.out.print("Enter Start Date (yyyy-MM-dd): ");
@@ -756,88 +1365,6 @@ public class MainApp {
         } else {
             System.out.println("Only guests can request additional services.");
         }
-    }
-    private static void checkInGuest() {
-        System.out.print("Enter Room Number: ");
-        int roomNumber = Integer.parseInt(scanner.nextLine());
-
-        System.out.print("Enter Guest Username for reservation: ");
-        String guestUsername = scanner.nextLine();
-
-        System.out.print("Enter Check-In Date of reservation (yyyy-MM-dd): ");
-        String targetCheckInDateStr = scanner.nextLine();
-        Date targetCheckInDate;
-        try {
-            targetCheckInDate = dateFormat.parse(targetCheckInDateStr);
-        } catch (ParseException e) {
-            System.out.println("Invalid date format. Use yyyy-MM-dd.");
-            return;
-        }
-
-        try {
-            hotel.checkInGuest(roomNumber, guestUsername, targetCheckInDate);
-        } catch (Exception e) {
-            // Handle the exception appropriately
-            System.out.println("Error while checking in guest: " + e.getMessage());
-        }
-    }
-    private static void checkOutGuest() {
-        System.out.print("Enter Room Number: ");
-        int roomNumber = Integer.parseInt(scanner.nextLine());
-
-        System.out.print("Enter Guest Username for reservation: ");
-        String guestUsername = scanner.nextLine();
-
-        System.out.print("Enter Check-In Date of reservation you want to check out from (yyyy-MM-dd): ");
-        String targetCheckInDateStr = scanner.nextLine();
-        Date targetCheckInDate;
-        try {
-            targetCheckInDate = dateFormat.parse(targetCheckInDateStr);
-        } catch (ParseException e) {
-            System.out.println("Invalid date format. Use yyyy-MM-dd.");
-            return;
-        }
-
-        try {
-            hotel.checkOutGuest(roomNumber, guestUsername, targetCheckInDate);
-        } catch (Exception e) {
-            // Handle the exception appropriately
-            System.out.println("Error while checking out guest: " + e.getMessage());
-        }
-    }
-    private static void viewPastReservations() {
-        if (loggedInUser instanceof Manager) {
-            List<Reservation> pastRes = hotel.getAllPastReservations();
-            if (pastRes.isEmpty()) {
-                System.out.println("No past reservations found.");
-            } else {
-                System.out.println("Past Reservations:");
-                for (Reservation reservation : pastRes) {
-                    System.out.println(reservation);
-                }
-            }
-        } else if (loggedInUser instanceof Guest) {
-            List<Reservation> pastRes = hotel.getPastReservationsForGuest((Guest) loggedInUser);
-            if (pastRes.isEmpty()) {
-                System.out.println("You have no past reservations.");
-            } else {
-                System.out.println("Your Past Reservations:");
-                for (Reservation reservation : pastRes) {
-                    System.out.println(reservation);
-                }
-            }
-        }
-    }
-    private static void setSeasonalPricing() {
-        System.out.print("Enter Season Start Date (yyyy-MM-dd): ");
-        Date startDate = getDateInput();
-        System.out.print("Enter Season End Date (yyyy-MM-dd): ");
-        Date endDate = getDateInput();
-        System.out.print("Enter Price Multiplier (e.g., 1.5 for 50% increase): ");
-        double multiplier = Double.parseDouble(scanner.nextLine());
-
-        hotel.setSeasonalPrice(startDate, endDate, multiplier);
-        System.out.println("Seasonal pricing set successfully.");
     }
     private static Date getDateInput() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -945,4 +1472,12 @@ public class MainApp {
             }
         }
     }
+
+    // Helper method to get relevant service types for the room
+    private static String[] getRelevantServiceTypes() {
+        // Replace this with your logic to fetch relevant service types for the room
+        String[] serviceTypes = {"Cleaning", "Room Service", "Maintenance"};
+        return serviceTypes;
+    }
 }
+

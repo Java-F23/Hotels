@@ -1,7 +1,10 @@
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class Reservation {
+    private static int nextReservationId = 1; // A static field to generate unique reservation IDs
+    private int reservationId; // The reservation ID field
     private Guest guest;
     private Room room;
     private Date checkInDate;
@@ -9,8 +12,9 @@ public class Reservation {
     private boolean checkedIn;
     private boolean checkedOut;
 
-    private double totalPrice;
+    private BigDecimal totalPrice;
     public Reservation(Guest guest, Room room, Date checkInDate, Date checkOutDate) {
+        this.reservationId = nextReservationId++; // Assign a unique reservation ID
         this.guest = guest;
         this.room = room;
         this.checkInDate = checkInDate;
@@ -19,17 +23,17 @@ public class Reservation {
         this.checkedIn = false;
         this.checkedOut = false;
     }
-    private double computeTotalPrice(Date checkInDate, Date checkOutDate, double roomPricePerNight) {
+    private BigDecimal computeTotalPrice(Date checkInDate, Date checkOutDate, BigDecimal roomPricePerNight) {
         long differenceInMillis = checkOutDate.getTime() - checkInDate.getTime();
         long days = differenceInMillis / (1000 * 60 * 60 * 24); // convert milliseconds to days
-        return days * roomPricePerNight;
+        return roomPricePerNight.multiply(BigDecimal.valueOf(days));
     }
 
-    public double getTotalPrice() {
+    public BigDecimal getTotalPrice() {
         long duration = TimeUnit.DAYS.convert(checkOutDate.getTime() - checkInDate.getTime(), TimeUnit.MILLISECONDS);
-        double basePrice = room.getPrice();
-        double seasonalMultiplier = Hotel.getInstance().getPriceMultiplier(checkInDate); // get multiplier based on check-in date
-        return basePrice * duration * seasonalMultiplier;
+        BigDecimal basePrice = room.getPrice();
+        BigDecimal seasonalMultiplier = BigDecimal.valueOf(Hotel.getInstance().getPriceMultiplier(checkInDate)); // get multiplier based on check-in date
+        return basePrice.multiply(seasonalMultiplier.multiply(BigDecimal.valueOf(duration)));
     }
     public Guest getGuest() {
         return guest;
@@ -80,4 +84,7 @@ public class Reservation {
                 "\n";
     }
 
+    public int getReservationID() {
+        return reservationId;
+    }
 }

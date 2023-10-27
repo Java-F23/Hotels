@@ -1,3 +1,4 @@
+import java.math.BigDecimal;
 import java.util.*;
 
 public class Room {
@@ -5,7 +6,7 @@ public class Room {
     private String type;
     private boolean availableForCleaning;
     private boolean occupied;
-    private double price;
+    private BigDecimal price;
     private List<Reservation> reservations = new ArrayList<>();
 
     private Staff cleaningStaff;
@@ -18,7 +19,7 @@ public class Room {
         this.cleaningStaff = staff;
     }
 
-    public Room(int roomNumber, String type, double price) {
+    public Room(int roomNumber, String type, BigDecimal price) {
         this.roomNumber = roomNumber;
         this.type = type;
         this.price = price;
@@ -51,11 +52,11 @@ public class Room {
         return type;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
-    public double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
@@ -85,4 +86,7 @@ public class Room {
         reservations.remove(reservation);
     }
 
+    public Object getRoomType() {
+        return type;
+    }
 }
