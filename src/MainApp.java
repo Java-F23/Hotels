@@ -476,6 +476,7 @@ public class MainApp {
                     }
                 }
             }
+
             // Enable the back button after displaying the reservations
             backButton_viewReservations.setEnabled(true);
         });
