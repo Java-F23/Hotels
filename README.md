@@ -136,5 +136,6 @@ Welcome to the Hotel Management System! This system is designed to assist hotel 
 [Conversation 1](https://chat.openai.com/share/edca63f0-6b0e-4deb-b3b9-3a876f8717a5 "Conversation 1")
 [Conversation 2](https://chat.openai.com/share/aca4dc84-bc2e-4ccf-8af3-11aa1aaa56b1 "Conversation 2")
 [Conversation 3](https://chat.openai.com/share/6def56c3-28d9-4f36-8a57-16c4327d3aaa "Conversation 3")
+[Conversation 4](https://chat.openai.com/share/292873a6-da9f-4464-a48e-75e3a1d65289 "Conversation 4")
 
 Thank you for using the Hotel Management System! We hope it helps streamline your hotel operations and enhance the guest experience. If you have any questions or feedback, please don't hesitate to contact me.
