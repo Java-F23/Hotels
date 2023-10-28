@@ -14,6 +14,7 @@ public class Staff {
     public Staff(String name, int staffId) {
         this.name = name;
         this.staffId = staffId;
+        this.isAvailable=true;
     }
 
     public String getName() {

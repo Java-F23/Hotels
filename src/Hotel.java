@@ -14,7 +14,7 @@ public class Hotel {
     private List<Room> rooms = new ArrayList<>();
     private List<Reservation> reservations = new ArrayList<>();
     private List<Reservation> pastReservations = new ArrayList<>();
-    private List<Staff> staffMembers = new ArrayList<>();
+    private static List<Staff> staffMembers = new ArrayList<>();
 
     // private constructor to prevent instantiation
     private Hotel() {
@@ -41,13 +41,13 @@ public class Hotel {
     }
 
     public List<Complaint> getUnresolvedComplaints() {
-        List<Complaint> unresolved = new ArrayList<>();
+        List<Complaint> unresolvedComplaints = new ArrayList<>();
         for (Complaint complaint : complaints) {
             if (!complaint.isResolved()) {
-                unresolved.add(complaint);
+                unresolvedComplaints.add(complaint);
             }
         }
-        return unresolved;
+        return unresolvedComplaints;
     }
 
     public void resolveComplaint(int complaintId, String resolution) {
@@ -436,4 +436,35 @@ public class Hotel {
         return matchingPastReservations;
     }
 
+    public List<Staff> getAvailableCleaningStaff() {
+        List<Staff> availableStaff = new ArrayList<>();
+        for (Staff staff : staffMembers) {
+            // Check if the staff member is available for cleaning (you should define your availability criteria)
+            if (staff.isAvailable()) {
+                availableStaff.add(staff);
+            }
+        }
+        return availableStaff;
+    }
+
+    public List<Room> getAvailableRoomsForCleaning() {
+        List<Room> availableRooms = new ArrayList<>();
+        for (Room room : rooms) {
+            // Check if the room is available for cleaning (you should define your availability criteria)
+            if (room.isAvailableForCleaning()) {
+                availableRooms.add(room);
+            }
+        }
+        return availableRooms;
+    }
+
+    public static Staff findStaffById(int id) {
+        for (Staff staff : staffMembers) {
+            // Check if the staff member is available for cleaning (you should define your availability criteria)
+            if (staff.getStaffId() == id) {
+                return staff;
+            }
+        }
+        return null;
+    }
 }

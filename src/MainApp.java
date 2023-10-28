@@ -1,4 +1,6 @@
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.math.BigDecimal;
 import java.util.*;
 import java.text.ParseException;
@@ -31,6 +33,7 @@ public class MainApp {
     public static void main(String[] args) {
         guestCredentials.add(new User("guest1", "password1"));
         managerCredentials.add(new User("manager1", "password1"));
+        hotel.addStaffMember(new Staff("Mike", 1));
         hotel.addOrUpdateRoom(109,"Single", BigDecimal.valueOf(100.0));
         JFrame frame = new JFrame("Hotel Management System");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -142,8 +145,7 @@ public class MainApp {
         String[] managerOptions = {
                 "Add/Update Room", "View Available Rooms", "Check-In Guest", "Check-Out Guest",
                 "View Reservations", "View Past Reservations", "Calculate Total Revenue",
-                "Set Seasonal Pricing", "Assign Cleaning Staff", "Generate Occupancy Report",
-                "Log Complaint", "View Unresolved Complaints", "Resolve Complaints", "View Resolved Complaints"
+                "Set Seasonal Pricing", "Assign Cleaning Staff", "Generate Occupancy Report", "View Unresolved Complaints", "Resolve Complaints", "View Resolved Complaints"
         };
 
 
@@ -603,18 +605,343 @@ public class MainApp {
             multiplierField.setText("");
         });
 
+// Create the card for AssignCleaningStaffToRoomCard
+        JPanel assignCleaningStaffToRoomCard = new JPanel(new BorderLayout());
 
-        // Create the card for generateOccupancyReportCard
-        JPanel generateOccupancyReportCard = new JPanel();
+// Create Input Fields and Buttons
+        JButton assignStaffButton = new JButton("Assign Staff");
+        JButton backButton_AssignCleaningStaff = new JButton("Back");
 
-        // Create the card for logComplaintCard
-        JPanel logComplaintCard = new JPanel();
+// Create a panel for staff table
+        DefaultTableModel staffTableModel = new DefaultTableModel(null, new String[]{"Staff ID", "Staff Name"});
+        JTable staffTable = new JTable(staffTableModel);
+        JScrollPane staffScrollPane = new JScrollPane(staffTable);
+        staffScrollPane.setPreferredSize(new Dimension(300, 150));
+        assignCleaningStaffToRoomCard.add(staffScrollPane, BorderLayout.WEST);
 
-        // Create the card for viewUnresolvedComplaintsCard
-        JPanel viewUnresolvedComplaintsCard = new JPanel();
+// Create a panel for room table
+        DefaultTableModel roomTableModel = new DefaultTableModel(null, new String[]{"Room Number", "Room Type"});
+        JTable roomTable = new JTable(roomTableModel);
+        JScrollPane roomScrollPane = new JScrollPane(roomTable);
+        roomScrollPane.setPreferredSize(new Dimension(300, 150));
+        assignCleaningStaffToRoomCard.add(roomScrollPane, BorderLayout.EAST);
 
-        // Create the card for resolveComplaintsCard
-        JPanel resolveComplaintsCard = new JPanel();
+// Panel for the "Back" button and assignment button
+        JPanel buttonPanel_AssignCleaningStaff = new JPanel();
+        buttonPanel_AssignCleaningStaff.add(backButton_AssignCleaningStaff);
+        buttonPanel_AssignCleaningStaff.add(assignStaffButton);
+        assignCleaningStaffToRoomCard.add(buttonPanel_AssignCleaningStaff, BorderLayout.SOUTH);
+
+// Populate the staff table with available staff members
+        List<Staff> availableStaff = hotel.getAvailableCleaningStaff(); // Modify this to get available staff
+        for (Staff staff : availableStaff) {
+            staffTableModel.addRow(new Object[]{staff.getStaffId(), staff.getName()});
+        }
+
+// Populate the room table with available rooms for cleaning
+        List<Room> availableRooms = hotel.getAvailableRoomsForCleaning(); // Modify this to get available rooms
+        for (Room room : availableRooms) {
+            roomTableModel.addRow(new Object[]{room.getRoomNumber(), room.getRoomType()});
+        }
+
+// Handle the Assign Staff Button Click
+        assignStaffButton.addActionListener(e -> {
+            int selectedStaffRow = staffTable.getSelectedRow();
+            int selectedRoomRow = roomTable.getSelectedRow();
+
+            if (selectedStaffRow == -1 || selectedRoomRow == -1) {
+                JOptionPane.showMessageDialog(null, "Please select both a staff member and a room.");
+            } else {
+                try {
+                    // Get staff ID and room number from selected rows
+                    int staffId = (int) staffTable.getValueAt(selectedStaffRow, 0);
+                    int roomNumber = (int) roomTable.getValueAt(selectedRoomRow, 0);
+
+                    // Find staff and room based on IDs
+                    Staff staff = hotel.findStaffById(staffId);
+                    Room room = hotel.findRoomByNumber(roomNumber);
+
+                    if (staff == null || room == null) {
+                        JOptionPane.showMessageDialog(null, "Invalid staff ID or room number.");
+                    } else {
+                        // Try to assign staff to the room
+                        hotel.assignStaffToRoom(staff, room);
+                        JOptionPane.showMessageDialog(null, "Staff assigned to room successfully!");
+
+                        // Remove assigned staff and room from the tables
+                        staffTableModel.removeRow(selectedStaffRow);
+                        roomTableModel.removeRow(selectedRoomRow);
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Invalid staff ID or room number format.");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "Error assigning staff: " + ex.getMessage());
+                }
+            }
+        });
+
+// Handle the Back Button Click for Assign Cleaning Staff
+        backButton_AssignCleaningStaff.addActionListener(e -> {
+            cardLayout.show(cardPanel, "ManagerCard"); // Navigate back to the Manager card (or the appropriate card)
+            // Clear selection and message when going back
+            staffTable.clearSelection();
+            roomTable.clearSelection();
+            staffTableModel.setRowCount(0); // Clear staff table
+            roomTableModel.setRowCount(0); // Clear room table
+        });
+
+// Create the card for generateOccupancyReportCard
+        JPanel generateOccupancyReportCard = new JPanel(new BorderLayout());
+
+// Create Input Fields and Buttons
+        JFormattedTextField startDateField_OccupancyReport = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd"));
+        JFormattedTextField endDateField_OccupancyReport = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd"));
+        startDateField_OccupancyReport.setPreferredSize(new Dimension(100, 20));
+        endDateField_OccupancyReport.setPreferredSize(new Dimension(100, 20));
+        JButton generateReportButton = new JButton("Generate Occupancy Report");
+        JButton backButton_GenerateReport = new JButton("Back");
+
+// Create a JTextArea to display the report
+        JTextArea reportTextArea = new JTextArea(10, 30);
+        reportTextArea.setEditable(false); // Make it non-editable
+        reportTextArea.setWrapStyleWord(true);
+        reportTextArea.setLineWrap(true);
+
+// Panel for Input Fields
+        JPanel inputPanel_GenerateReport = new JPanel();
+        inputPanel_GenerateReport.add(new JLabel("Start Date (yyyy-MM-dd): "));
+        inputPanel_GenerateReport.add(startDateField_OccupancyReport);
+        inputPanel_GenerateReport.add(new JLabel("End Date (yyyy-MM-dd): "));
+        inputPanel_GenerateReport.add(endDateField_OccupancyReport);
+        inputPanel_GenerateReport.add(generateReportButton);
+        generateOccupancyReportCard.add(inputPanel_GenerateReport, BorderLayout.NORTH);
+
+// Add the report text area to a scroll pane
+        JScrollPane reportScrollPane = new JScrollPane(reportTextArea);
+        generateOccupancyReportCard.add(reportScrollPane, BorderLayout.CENTER);
+
+// Add the Back button to a navigation panel
+        JPanel navPanel_GenerateReport = new JPanel();
+        navPanel_GenerateReport.add(backButton_GenerateReport);
+        generateOccupancyReportCard.add(navPanel_GenerateReport, BorderLayout.SOUTH);
+
+// Handle the Generate Occupancy Report Button Click
+        generateReportButton.addActionListener(e -> {
+            // Get the input values
+            Date startDate = (Date) startDateField_OccupancyReport.getValue();
+            Date endDate = (Date) endDateField_OccupancyReport.getValue();
+
+            // Validate the input values
+            if (startDate == null || endDate == null) {
+                JOptionPane.showMessageDialog(null, "Please enter valid start and end dates.");
+                return;
+            }
+
+            if (startDate.after(endDate)) {
+                JOptionPane.showMessageDialog(null, "Start date cannot be after end date.");
+                return;
+            }
+
+            // Generate and display the occupancy report
+            Manager manager = (Manager) loggedInUser;
+            OccupancyReport report = manager.generateAndDisplayOccupancyReport(startDate, endDate);
+
+            // Display the report in the text area
+            reportTextArea.setText(report.toString());
+        });
+
+// Handle the Back Button Click for Generate Occupancy Report
+        backButton_GenerateReport.addActionListener(e -> {
+            cardLayout.show(cardPanel, "ManagerCard"); // Navigate back to the Manager card
+            // Clear input fields and report text when going back
+            startDateField.setValue(null);
+            endDateField.setValue(null);
+            reportTextArea.setText("");
+        });
+
+// Create the card for logComplaintCard
+        JPanel logComplaintCard = new JPanel(new BorderLayout());
+
+// Create Input Fields and Buttons
+        JTextArea complaintDescriptionArea = new JTextArea(5, 30);
+        complaintDescriptionArea.setWrapStyleWord(true);
+        complaintDescriptionArea.setLineWrap(true);
+        JButton logComplaintButton = new JButton("Log Complaint");
+        JButton backButton_LogComplaint = new JButton("Back");
+
+// Panel for Input Fields
+        JPanel inputPanel_LogComplaint = new JPanel(new GridBagLayout());
+        GridBagConstraints inputGbc = new GridBagConstraints();
+        inputGbc.gridx = 0;
+        inputGbc.gridy = 0;
+        inputGbc.insets = new Insets(5, 5, 5, 5); // Add some padding
+        inputPanel_LogComplaint.add(new JLabel("Complaint Description: "), inputGbc);
+        inputGbc.gridy++;
+        inputPanel_LogComplaint.add(new JScrollPane(complaintDescriptionArea), inputGbc);
+        inputGbc.gridy++;
+        inputPanel_LogComplaint.add(logComplaintButton, inputGbc);
+
+// Create a panel to hold the input panel and navigation panel vertically centered
+        JPanel centeredPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints centeredGbc = new GridBagConstraints();
+        centeredGbc.gridx = 0;
+        centeredGbc.gridy = 0;
+        centeredPanel.add(inputPanel_LogComplaint, centeredGbc);
+        centeredGbc.gridy++;
+        centeredPanel.add(backButton_LogComplaint, centeredGbc);
+
+        logComplaintCard.add(centeredPanel, BorderLayout.CENTER);
+
+// Handle the Log Complaint Button Click
+        logComplaintButton.addActionListener(e -> {
+            // Get the input values
+            String complaintDescription = complaintDescriptionArea.getText();
+
+            // Validate the input values
+            if (complaintDescription.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Please enter a complaint description.");
+                return;
+            }
+
+            // Log the complaint for the logged-in guest
+            if (loggedInUser instanceof Guest) {
+                Guest guest = (Guest) loggedInUser;
+                hotel.logComplaint(guest, complaintDescription);
+                JOptionPane.showMessageDialog(null, "Complaint logged successfully.");
+                // Clear input fields when the complaint is logged
+                complaintDescriptionArea.setText("");
+            } else {
+                JOptionPane.showMessageDialog(null, "Only guests can log complaints.");
+            }
+        });
+
+// Handle the Back Button Click for Log Complaint
+        backButton_LogComplaint.addActionListener(e -> {
+            cardLayout.show(cardPanel, "GuestCard");
+            // Clear input fields when going back
+            complaintDescriptionArea.setText("");
+        });
+
+
+// Create the card for viewUnresolvedComplaintsCard
+        JPanel viewUnresolvedComplaintsCard = new JPanel(new BorderLayout());
+// Create a DefaultListModel to hold the complaints
+        DefaultListModel<String> complaintListModel = new DefaultListModel<>();
+// Create a JList to display the complaints
+        JList<String> complaintList = new JList<>(complaintListModel);
+// Create a JScrollPane for the JList
+        JScrollPane scrollPane_complaint = new JScrollPane(complaintList);
+        scrollPane_complaint.setPreferredSize(new Dimension(500, 200));
+// Add the JScrollPane to the card
+        viewUnresolvedComplaintsCard.add(scrollPane_complaint, BorderLayout.CENTER);
+// Create a Back button to return to the main menu
+        JButton backButton_complaint = new JButton("Back");
+// Add the Back button to a navigation panel
+        JPanel navPanel_complaint = new JPanel();
+        navPanel_complaint.add(backButton_complaint);
+        viewUnresolvedComplaintsCard.add(navPanel_complaint, BorderLayout.SOUTH);
+
+// Handle the Back Button Click
+        backButton_complaint.addActionListener(e -> {
+            cardLayout.show(cardPanel, "ManagerCard"); // Navigate back to the Manager card
+            // Clear the complaintListModel when going back
+            complaintListModel.clear();
+        });
+
+        viewUnresolvedComplaintsCard.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                // This code will run every time the card is shown
+                // Assuming you have a method to get unresolved complaints
+                List<Complaint> unresolvedComplaints = hotel.getUnresolvedComplaints();
+
+                for (Complaint complaint : unresolvedComplaints) {
+                    complaintListModel.addElement(complaint.toString()); // Add each complaint as a string
+                }
+            }
+        });
+
+// Create the card for resolveComplaintsCard
+        JPanel resolveComplaintsCard = new JPanel(new BorderLayout());
+
+// Create a panel for the unresolved complaints table
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        String[] unresolvedColumnNames = {"Complaint ID", "Guest Username", "Description", "Date Logged"};
+        DefaultTableModel unresolvedTableModel = new DefaultTableModel(null, unresolvedColumnNames);
+        JTable unresolvedTable = new JTable(unresolvedTableModel);
+        JScrollPane unresolvedScrollPane = new JScrollPane(unresolvedTable);
+        unresolvedScrollPane.setPreferredSize(new Dimension(350, 200));
+        tablePanel.add(unresolvedScrollPane, BorderLayout.CENTER);
+
+// Create a panel for the resolution text area
+        JPanel resolutionPanel = new JPanel(new BorderLayout());
+        JTextArea resolutionTextArea = new JTextArea(3, 20); // Adjust the rows (3) as needed
+        JScrollPane resolutionScrollPane = new JScrollPane(resolutionTextArea);
+        resolutionScrollPane.setPreferredSize(new Dimension(350, 75)); // Adjust the height (75) as needed
+        resolutionPanel.add(resolutionScrollPane, BorderLayout.CENTER);
+
+// Create a panel to hold both tablePanel and resolutionPanel side by side
+        JPanel contentPanel = new JPanel(new GridLayout(1, 2));
+        contentPanel.add(tablePanel);
+        contentPanel.add(resolutionPanel);
+
+// Create a panel for buttons
+        JPanel buttonPanel_resolve = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton resolveComplaintButton = new JButton("Resolve Complaint");
+        JButton backButton_ResolveComplaints = new JButton("Back");
+        buttonPanel_resolve.add(resolveComplaintButton);
+        buttonPanel_resolve.add(backButton_ResolveComplaints);
+
+// Add contentPanel and buttonPanel to the resolveComplaintsCard
+        resolveComplaintsCard.add(contentPanel, BorderLayout.CENTER);
+        resolveComplaintsCard.add(buttonPanel_resolve, BorderLayout.SOUTH);
+
+// Handle the Back Button Click for Resolve Complaints
+        backButton_ResolveComplaints.addActionListener(e -> {
+            cardLayout.show(cardPanel, "ManagerCard"); // Navigate back to the Manager card
+            unresolvedTableModel.setRowCount(0); // Clear the table when going back
+            resolutionTextArea.setText(""); // Clear the resolution text area
+        });
+
+// Handle the Resolve Complaint Button Click
+        resolveComplaintButton.addActionListener(e -> {
+            int selectedRow = unresolvedTable.getSelectedRow();
+            if (selectedRow >= 0) {
+                int complaintId = (int) unresolvedTable.getValueAt(selectedRow, 0); // Get the complaint ID from the table
+                String resolution = resolutionTextArea.getText();
+
+                // Check if the resolution is not empty before resolving
+                if (!resolution.isEmpty()) {
+                    // Call the resolveComplaint method in your hotel.java class
+                    hotel.resolveComplaint(complaintId, resolution);
+
+                    // Remove the resolved complaint from the table
+                    unresolvedTableModel.removeRow(selectedRow);
+                    resolutionTextArea.setText(""); // Clear the resolution text area
+                } else {
+                    JOptionPane.showMessageDialog(null, "Please enter a resolution before resolving the complaint.");
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Please select a complaint to resolve.");
+            }
+        });
+        resolveComplaintsCard.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                unresolvedTableModel.setRowCount(0); // Clear the table
+                // Add unresolved complaints from your data source to the table
+                List<Complaint> unresolvedComplaints = hotel.getUnresolvedComplaints();
+                for (Complaint complaint : unresolvedComplaints) {
+                    unresolvedTableModel.addRow(new Object[]{
+                            complaint.getComplaintId(),
+                            complaint.getGuest().getUsername(),
+                            complaint.getDescription(),
+                            complaint.getDateLogged()
+                    });
+                }
+            }
+        });
+
 
         // Create the card for viewResolvedComplaintsCard
         JPanel viewResolvedComplaintsCard = new JPanel();
@@ -649,13 +976,10 @@ public class MainApp {
                         cardLayout.show(cardPanel, "setSeasonalPricingCard");
                         break;
                     case "Assign Cleaning Staff":
-                        cardLayout.show(cardPanel, "assignCleaningStaffCard");
+                        cardLayout.show(cardPanel, "assignCleaningStaffToRoomCard");
                         break;
                     case "Generate Occupancy Report":
                         cardLayout.show(cardPanel, "generateOccupancyReportCard");
-                        break;
-                    case "Log Complaint":
-                        cardLayout.show(cardPanel, "logComplaintCard");
                         break;
                     case "View Unresolved Complaints":
                         cardLayout.show(cardPanel, "viewUnresolvedComplaintsCard");
@@ -681,7 +1005,7 @@ public class MainApp {
         JPanel guestCard = new JPanel();
         guestCard.setLayout(new GridLayout(7, 1));
         String[] guestOptions = {"View Available Rooms", "Book Room", "View Reservations",
-                "View Past Reservations", "Request Additional Service"};
+                "View Past Reservations", "Log Complaint", "Request Additional Service"};
 
         // Create the card for Guest View Available Rooms
         JPanel Guest_viewAvailableRoomsCard = new JPanel();
@@ -759,18 +1083,18 @@ public class MainApp {
             }
 
             // Call a method to search for available rooms based on the date range
-            List<Room> availableRooms = hotel.getAvailableRooms(checkInDate, checkOutDate);
+            List<Room> availableRooms_BookRoom = hotel.getAvailableRooms(checkInDate, checkOutDate);
 
             // Clear the table
             model_BookRoom.setRowCount(0);
 
             // Populate the table with search results
-            for (Room room : availableRooms) {
+            for (Room room : availableRooms_BookRoom) {
                 model_BookRoom.addRow(new Object[]{room.getRoomNumber(), room.getRoomType(), room.getPrice()});
             }
 
             // Enable the book button if there are available rooms
-            bookButton_BookRoom.setEnabled(!availableRooms.isEmpty());
+            bookButton_BookRoom.setEnabled(!availableRooms_BookRoom.isEmpty());
         });
 
 // Handle the Book Button Click
@@ -1016,6 +1340,9 @@ public class MainApp {
                     case "View Past Reservations":
                         cardLayout.show(cardPanel, "viewPastReservationsCard");
                         break;
+                    case "Log Complaint":
+                        cardLayout.show(cardPanel, "logComplaintCard");
+                        break;
                     case "Request Additional Service":
                         cardLayout.show(cardPanel, "requestAdditionalServiceCard");
                         break;
@@ -1046,6 +1373,11 @@ public class MainApp {
         cardPanel.add(checkOutGuestCard, "checkOutGuestCard");
         cardPanel.add(setSeasonalPricingCard, "setSeasonalPricingCard");
         cardPanel.add(displayTotalRevenueCard, "displayTotalRevenueCard");
+        cardPanel.add(assignCleaningStaffToRoomCard, "assignCleaningStaffToRoomCard");
+        cardPanel.add(generateOccupancyReportCard, "generateOccupancyReportCard");
+        cardPanel.add(logComplaintCard, "logComplaintCard");
+        cardPanel.add(viewUnresolvedComplaintsCard, "viewUnresolvedComplaintsCard");
+        cardPanel.add(resolveComplaintsCard, "resolveComplaintsCard");
 
         // Button actions
         addActionToButton(managerButton, cardPanel, cardLayout, "ManagerLoginCard");
@@ -1111,12 +1443,12 @@ public class MainApp {
             }
 
 
-            List<Room> availableRooms = hotel.getAvailableRooms(checkInDate, checkOutDate);
-            if (availableRooms.isEmpty()) {
+            List<Room> availableRoom_s = hotel.getAvailableRooms(checkInDate, checkOutDate);
+            if (availableRoom_s.isEmpty()) {
                 roomListArea.setText("No available rooms for the given date range.");
             } else {
                 StringBuilder sb = new StringBuilder("Available Rooms:\n");
-                for (Room room : availableRooms) {
+                for (Room room : availableRoom_s) {
                     sb.append(room.toString()).append("\n"); // assuming Room class has a meaningful toString method
                 }
                 roomListArea.setText(sb.toString());
@@ -1149,12 +1481,12 @@ public class MainApp {
             }
 
 
-            List<Room> availableRooms = hotel.getAvailableRooms(checkInDate, checkOutDate);
-            if (availableRooms.isEmpty()) {
+            List<Room> availableRooms_g = hotel.getAvailableRooms(checkInDate, checkOutDate);
+            if (availableRooms_g.isEmpty()) {
                 Guest_roomListArea.setText("No available rooms for the given date range.");
             } else {
                 StringBuilder sb = new StringBuilder("Available Rooms:\n");
-                for (Room room : availableRooms) {
+                for (Room room : availableRooms_g) {
                     sb.append(room.toString()).append("\n"); // assuming Room class has a meaningful toString method
                 }
                 Guest_roomListArea.setText(sb.toString());
@@ -1240,55 +1572,6 @@ public class MainApp {
             return false; // Invalid input, not a valid double
         }
     }
-
-    // Helper Method to Validate Input Fields
-    static boolean validateInputFields(JTextField guestUsernameField, JTextField roomNumberField, JFormattedTextField checkInDateField) {
-        String guestUsername = guestUsernameField.getText();
-        String roomNumber = roomNumberField.getText();
-        String checkInDate = checkInDateField.getText();
-
-        // Validate guest username
-        if (guestUsername == null || guestUsername.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Guest Username cannot be empty.");
-            return false;
-        }
-
-        // Validate room number
-        if (roomNumber == null || roomNumber.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Room Number cannot be empty.");
-            return false;
-        }
-
-        try {
-            Integer.parseInt(roomNumber);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "Room Number must be an integer.");
-            return false;
-        }
-
-        // Validate check-in and check-out dates
-        if (checkInDate == null || checkInDate.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Check-In Date cannot be empty.");
-            return false;
-        }
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        try {
-            Date parsedCheckInDate = dateFormat.parse(checkInDate);
-            Date currentDate = new Date();
-            if (parsedCheckInDate.before(currentDate)) {
-                JOptionPane.showMessageDialog(null, "Date cannot be in the past.");
-                return false;
-            }
-
-        } catch (ParseException e) {
-            JOptionPane.showMessageDialog(null, "Invalid date format. Use yyyy-MM-dd.");
-            return false;
-        }
-
-        return true;
-    }
-
     private static User managerLogin(String username, String password) {
         for (User user : managerCredentials) {
             if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
@@ -1308,122 +1591,11 @@ public class MainApp {
         return null;
     }
 
-    private static void generateOccupancyReport() {
-        if (loggedInUser instanceof Manager) {
-            System.out.print("Enter Start Date (yyyy-MM-dd): ");
-            String startDateStr = scanner.nextLine();
-            Date startDate;
-            try {
-                startDate = dateFormat.parse(startDateStr);
-            } catch (ParseException e) {
-                System.out.println("Invalid date format. Use yyyy-MM-dd.");
-                return;
-            }
-
-            System.out.print("Enter End Date (yyyy-MM-dd): ");
-            String endDateStr = scanner.nextLine();
-            Date endDate;
-            try {
-                endDate = dateFormat.parse(endDateStr);
-            } catch (ParseException e) {
-                System.out.println("Invalid date format. Use yyyy-MM-dd.");
-                return;
-            }
-
-            // Generate and display the occupancy report
-            Manager manager = (Manager) loggedInUser;
-            manager.generateAndDisplayOccupancyReport(startDate, endDate);
-        } else {
-            System.out.println("Only managers can generate occupancy reports.");
-        }
-    }
-    private static void requestAdditionalService() {
-        if (loggedInUser instanceof Guest) {
-            Scanner scanner = new Scanner(System.in);
-            System.out.print("Enter the type of service you wish to request: ");
-            String serviceType = scanner.nextLine();
-
-            System.out.print("Enter the date for the service request (YYYY-MM-DD): ");
-            String serviceDateInput = scanner.nextLine();
-            Date serviceDate;
-            try {
-                serviceDate = new SimpleDateFormat("yyyy-MM-dd").parse(serviceDateInput);
-            } catch (ParseException e) {
-                System.out.println("Invalid date format.");
-                return;
-            }
-
-            Guest requestingGuest = (Guest) loggedInUser;
-
-            if (hotel.hasActiveReservation(requestingGuest, serviceDate)) {
-                ServiceRequest serviceRequest = new ServiceRequest(requestingGuest, serviceType, serviceDate);
-                hotel.logServiceRequest(serviceRequest);
-                System.out.println("Service request for " + serviceType + " has been submitted.");
-            } else {
-                System.out.println("No active reservation found for the specified date.");
-            }
-        } else {
-            System.out.println("Only guests can request additional services.");
-        }
-    }
-    private static Date getDateInput() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date date = null;
-        while (date == null) {
-            try {
-                String input = scanner.nextLine();
-                date = dateFormat.parse(input);
-            } catch (ParseException e) {
-                System.out.println("Invalid date format. Please enter the date in yyyy-MM-dd format.");
-            }
-        }
-        return date;
-    }
-    private static void assignCleaningStaffToRoom() {
-        System.out.print("Enter Staff ID: ");
-        int staffId = Integer.parseInt(scanner.nextLine());
-        System.out.print("Enter Room Number: ");
-        int roomNumber = Integer.parseInt(scanner.nextLine());
-
-        Staff staff = findStaffById(staffId);
-        Room room = hotel.findRoomByNumber(roomNumber);
-
-        if (staff == null || room == null) {
-            System.out.println("Invalid staff ID or room number.");
-            return;
-        }
-
-        try {
-            hotel.assignStaffToRoom(staff, room);
-            System.out.println("Staff assigned to room successfully!");
-        } catch (Exception e) {
-            System.out.println("Error assigning staff: " + e.getMessage());
-        }
-    }
-
-    // This function will find a staff member by ID.
-    private static Staff findStaffById(int id) {
-        // Assuming a list of staff members exists. Modify accordingly.
-        for (Staff s : staffMembers) {
-            if (s.getStaffId() == id) {
-                return s;
-            }
-        }
-        return null;
-    }
-    private static void logComplaint() {
-        System.out.print("Enter Guest Username: ");
-        String guestUsername = scanner.nextLine();
-        Guest guest = findGuestByUsername(guestUsername);
-
-        if (guest != null) {
-            System.out.print("Enter Complaint Description: ");
-            String complaintDescription = scanner.nextLine();
-            hotel.logComplaint(guest, complaintDescription);
-            System.out.println("Complaint logged successfully.");
-        } else {
-            System.out.println("Guest not found.");
-        }
+    // Helper method to get relevant service types for the room
+    private static String[] getRelevantServiceTypes() {
+        // Replace this with your logic to fetch relevant service types for the room
+        String[] serviceTypes = {"Cleaning", "Room Service", "Maintenance"};
+        return serviceTypes;
     }
     private static Guest findGuestByUsername(String username) {
         for (User user : guestCredentials) {
@@ -1433,51 +1605,6 @@ public class MainApp {
         }
         return null;
     }
-    private static void viewUnresolvedComplaints() {
-        List<Complaint> unresolvedComplaints = hotel.getUnresolvedComplaints();
-        if (unresolvedComplaints.isEmpty()) {
-            System.out.println("No unresolved complaints.");
-        } else {
-            System.out.println("Unresolved Complaints:");
-            for (Complaint complaint : unresolvedComplaints) {
-                System.out.println(complaint);
-            }
-        }
-    }
-
-    private static void resolveComplaint() {
-        System.out.print("Enter Complaint ID to resolve: ");
-        int complaintId = Integer.parseInt(scanner.nextLine());
-
-        System.out.print("Enter Resolution: ");
-        String resolution = scanner.nextLine();
-
-        hotel.resolveComplaint(complaintId, resolution);
-    }
-
-    private static void viewResolvedComplaints() {
-        List<Complaint> resolvedComplaints = new ArrayList<>();
-        for (Complaint complaint : hotel.getComplaints()) {
-            if (complaint.isResolved()) {
-                resolvedComplaints.add(complaint);
-            }
-        }
-
-        if (resolvedComplaints.isEmpty()) {
-            System.out.println("No resolved complaints.");
-        } else {
-            System.out.println("Resolved Complaints:");
-            for (Complaint complaint : resolvedComplaints) {
-                System.out.println(complaint);
-            }
-        }
-    }
-
-    // Helper method to get relevant service types for the room
-    private static String[] getRelevantServiceTypes() {
-        // Replace this with your logic to fetch relevant service types for the room
-        String[] serviceTypes = {"Cleaning", "Room Service", "Maintenance"};
-        return serviceTypes;
-    }
+    
 }
 

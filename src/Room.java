@@ -24,6 +24,7 @@ public class Room {
         this.type = type;
         this.price = price;
         this.occupied = false;
+        this.availableForCleaning = true;
     }
 
     public boolean isAvailableForCleaning() {

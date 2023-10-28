@@ -39,10 +39,22 @@ public class Complaint {
 
     @Override
     public String toString() {
-        return "Complaint ID: " + complaintId +
-                "\nGuest: " + guest.getUsername() +
-                "\nComplaint Date: " + complaintDate +
-                "\nDescription: " + complaintDescription +
-                "\nResolution: " + (resolved ? resolution : "Not resolved yet");
+        return "Complaint ID: " + complaintId + " " +
+                "\nGuest: " + guest.getUsername() + " " +
+                "\nComplaint Date: " + complaintDate + " " +
+                "\nDescription: " + complaintDescription + " " +
+                "\nResolution: " + (resolved ? resolution : "Not resolved yet" + " ");
+    }
+
+    public String getDescription() {
+        return complaintDescription;
+    }
+
+    public User getGuest() {
+        return guest;
+    }
+
+    public Date getDateLogged() {
+        return complaintDate;
     }
 }
