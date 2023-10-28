@@ -944,7 +944,42 @@ public class MainApp {
 
 
         // Create the card for viewResolvedComplaintsCard
-        JPanel viewResolvedComplaintsCard = new JPanel();
+        JPanel viewResolvedComplaintsCard = new JPanel(new BorderLayout());
+// Create a DefaultListModel to hold the complaints
+        DefaultListModel<String> complaintListModel_viewResolvedComplaints = new DefaultListModel<>();
+// Create a JList to display the complaints
+        JList<String> complaintList_viewResolvedComplaints = new JList<>(complaintListModel_viewResolvedComplaints);
+// Create a JScrollPane for the JList
+        JScrollPane scrollPane_complaint_viewResolvedComplaints = new JScrollPane(complaintList_viewResolvedComplaints);
+        scrollPane_complaint_viewResolvedComplaints.setPreferredSize(new Dimension(500, 200));
+// Add the JScrollPane to the card
+        viewResolvedComplaintsCard.add(scrollPane_complaint_viewResolvedComplaints, BorderLayout.CENTER);
+// Create a Back button to return to the main menu
+        JButton backButton_complaint_viewResolvedComplaints = new JButton("Back");
+// Add the Back button to a navigation panel
+        JPanel navPanel_complaint_viewResolvedComplaints = new JPanel();
+        navPanel_complaint_viewResolvedComplaints.add(backButton_complaint_viewResolvedComplaints);
+        viewResolvedComplaintsCard.add(navPanel_complaint_viewResolvedComplaints, BorderLayout.SOUTH);
+
+// Handle the Back Button Click
+        backButton_complaint_viewResolvedComplaints.addActionListener(e -> {
+            cardLayout.show(cardPanel, "ManagerCard"); // Navigate back to the Manager card
+            // Clear the complaintListModel when going back
+            complaintListModel_viewResolvedComplaints.clear();
+        });
+
+        viewResolvedComplaintsCard.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                // This code will run every time the card is shown
+                // Assuming you have a method to get unresolved complaints
+                List<Complaint> resolvedComplaints = hotel.getresolvedComplaints();
+
+                for (Complaint complaint : resolvedComplaints) {
+                    complaintListModel_viewResolvedComplaints.addElement(complaint.toString()); // Add each complaint as a string
+                }
+            }
+        });
 
         for (String option : managerOptions) {
             JButton button = new JButton(option);
@@ -1378,6 +1413,7 @@ public class MainApp {
         cardPanel.add(logComplaintCard, "logComplaintCard");
         cardPanel.add(viewUnresolvedComplaintsCard, "viewUnresolvedComplaintsCard");
         cardPanel.add(resolveComplaintsCard, "resolveComplaintsCard");
+        cardPanel.add(viewResolvedComplaintsCard, "viewResolvedComplaintsCard");
 
         // Button actions
         addActionToButton(managerButton, cardPanel, cardLayout, "ManagerLoginCard");
@@ -1580,7 +1616,6 @@ public class MainApp {
         }
         return null;
     }
-
     private static User guestLogin(String username, String password) {
 
         for (User user : guestCredentials) {
@@ -1590,21 +1625,12 @@ public class MainApp {
         }
         return null;
     }
-
     // Helper method to get relevant service types for the room
     private static String[] getRelevantServiceTypes() {
         // Replace this with your logic to fetch relevant service types for the room
         String[] serviceTypes = {"Cleaning", "Room Service", "Maintenance"};
         return serviceTypes;
     }
-    private static Guest findGuestByUsername(String username) {
-        for (User user : guestCredentials) {
-            if (user instanceof Guest && user.getUsername().equals(username)) {
-                return (Guest) user;
-            }
-        }
-        return null;
-    }
-    
+
 }
 

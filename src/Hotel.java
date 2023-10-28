@@ -27,19 +27,15 @@ public class Hotel {
         }
         return instance;
     }
-
     private static List<ServiceRequest> serviceRequests = new ArrayList<>();
-
     public static void logServiceRequest(ServiceRequest request) {
         serviceRequests.add(request);
     }
-
     public void logComplaint(Guest guest, String complaintDescription) {
         int nextComplaintId = complaints.size() + 1; // Generate a unique complaint ID
         Complaint complaint = new Complaint(nextComplaintId, guest, new Date(), complaintDescription);
         complaints.add(complaint);
     }
-
     public List<Complaint> getUnresolvedComplaints() {
         List<Complaint> unresolvedComplaints = new ArrayList<>();
         for (Complaint complaint : complaints) {
@@ -49,7 +45,6 @@ public class Hotel {
         }
         return unresolvedComplaints;
     }
-
     public void resolveComplaint(int complaintId, String resolution) {
         for (Complaint complaint : complaints) {
             if (complaint.getComplaintId() == complaintId && !complaint.isResolved()) {
@@ -61,22 +56,6 @@ public class Hotel {
         }
         System.out.println("Complaint not found or already resolved.");
     }
-
-    public List<Complaint> getComplaints() {
-        return complaints;
-    }
-
-    public void assignStaffToRequest(ServiceRequest request) {
-        Staff availableStaff = findAvailableStaff();
-        if (availableStaff != null) {
-            request.setStaffAssigned(availableStaff);
-            availableStaff.setAvailable(false);
-        } else {
-            System.out.println("No available staff found.");
-        }
-    }
-
-
     public OccupancyReport generateOccupancyReport(Date startDate, Date endDate) {
         int totalRooms = rooms.size();
         int occupiedRoomDays = 0;
@@ -96,19 +75,15 @@ public class Hotel {
         double occupancyRate = (double) occupiedRoomDays / (totalRooms * ((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
         return new OccupancyReport(startDate, endDate, occupancyRate);
     }
-
     public static List<ServiceRequest> getServiceRequests() {
         return serviceRequests;
     }
-
     public void addStaffMember(Staff staff) {
         staffMembers.add(staff);
     }
-
     public List<Staff> getStaffMembers() {
         return staffMembers;
     }
-
     public void assignStaffToRoom(Staff staff, Room room) throws Exception {
         for (Room r : rooms) {
             if (r.getCleaningStaff() != null && r.getCleaningStaff().equals(staff)) {
@@ -117,7 +92,6 @@ public class Hotel {
         }
         room.assignCleaningStaff(staff);
     }
-
     public boolean hasActiveReservation(Guest guest, Date serviceDate) {
         for (Reservation reservation : reservations) {
             if (reservation.getGuest().equals(guest) &&
@@ -129,11 +103,9 @@ public class Hotel {
         }
         return false;
     }
-
     public void completeServiceRequest(ServiceRequest request) {
         request.complete();
     }
-
     public Staff findAvailableStaff() {
         for (Staff staff : staffMembers) {
             if (staff.isAvailable()) {
@@ -142,11 +114,9 @@ public class Hotel {
         }
         return null;  // Return null if no available staff found
     }
-
     public void setSeasonalPrice(Date startDate, Date endDate, double multiplier) {
         seasonalPrices.add(new SeasonalPrice(startDate, endDate, multiplier));
     }
-
     public double getPriceMultiplier(Date date) {
         for (SeasonalPrice seasonalPrice : seasonalPrices) {
             if (seasonalPrice.isDateWithinSeason(date)) {
@@ -155,7 +125,6 @@ public class Hotel {
         }
         return 1.0; // default multiplier
     }
-
     public void addOrUpdateRoom(int roomNumber, String type, BigDecimal price) {
         Room roomToUpdate = findRoomByNumber(roomNumber);
         if (roomToUpdate != null) {
@@ -166,7 +135,6 @@ public class Hotel {
             rooms.add(newRoom);
         }
     }
-
     public List<Room> getAvailableRooms(Date checkIn, Date checkOut) {
         List<Room> availableRooms = new ArrayList<>();
         for (Room room : rooms) {
@@ -176,7 +144,6 @@ public class Hotel {
         }
         return availableRooms;
     }
-
     public boolean bookRoom(int roomNumber, Date checkIn, Date checkOut, Guest guest) throws Exception {
         Room roomToBook = findRoomByNumber(roomNumber);
         if (roomToBook == null) {
@@ -201,7 +168,6 @@ public class Hotel {
             return false;
         }
     }
-
     public void checkInGuest(int roomNumber, String guestUsername, Date targetCheckInDate) throws Exception {
         Room roomToCheckIn = findRoomByNumber(roomNumber);
         if (roomToCheckIn == null) {
@@ -230,7 +196,6 @@ public class Hotel {
             throw new Exception("Matching reservation not found or guest is already checked in.");
         }
     }
-
     public void checkOutGuest(int roomNumber, String guestUsername, Date targetCheckInDate) throws Exception {
         Room roomToCheckOut = findRoomByNumber(roomNumber);
         if (roomToCheckOut == null) {
@@ -264,21 +229,9 @@ public class Hotel {
             throw new Exception("Matching reservation not found or guest is not checked in.");
         }
     }
-
-    public List<Reservation> getPastReservationsForGuest(Guest guest) {
-        List<Reservation> guestPastReservations = new ArrayList<>();
-        for (Reservation reservation : pastReservations) {
-            if (reservation.getGuest().equals(guest)) {
-                guestPastReservations.add(reservation);
-            }
-        }
-        return guestPastReservations;
-    }
-
     public List<Reservation> getAllPastReservations() {
         return pastReservations;
     }
-
     public List<Reservation> getReservationsForGuest(Guest guest) {
         List<Reservation> guestReservations = new ArrayList<>();
         for (Reservation reservation : reservations) {
@@ -288,11 +241,9 @@ public class Hotel {
         }
         return guestReservations;
     }
-
     public List<Reservation> getAllReservations() {
         return reservations;
     }
-
     public Room findRoomByNumber(int roomNumber) {
         for (Room room : rooms) {
             if (room.getRoomNumber() == roomNumber) {
@@ -301,7 +252,6 @@ public class Hotel {
         }
         return null;
     }
-
     public BigDecimal calculateTotalRevenue() {
         BigDecimal totalRevenue = BigDecimal.valueOf(0.0);
 
@@ -315,11 +265,6 @@ public class Hotel {
 
         return totalRevenue;
     }
-
-    public void addRoom(Room room) {
-        rooms.add(room);
-    }
-
     public List<Reservation> searchReservations(String guestUsernameCheckin, String roomNumberStr, String checkInDateStr) {
         List<Reservation> searchResults = new ArrayList<>();
 
@@ -369,7 +314,6 @@ public class Hotel {
 
         return searchResults;
     }
-
     public Reservation getSelectedReservationByID(int reservationID) {
         for (Reservation reservation : reservations) {
             if (reservation.getReservationID() == reservationID) {
@@ -378,7 +322,6 @@ public class Hotel {
         }
         return null; // Return null if the reservation with the specified ID is not found
     }
-
     public List<Reservation> searchPastReservations(String guestUsernamePast, String checkInDateStr) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         dateFormat.setLenient(false); // Disallow lenient parsing
@@ -404,8 +347,6 @@ public class Hotel {
 
         return matchingPastReservations;
     }
-
-
     public List<Reservation> searchPastReservationsByGuest(String guestUsernamePast) {
         // Create a list to store matching past reservations
         List<Reservation> matchingPastReservations = new ArrayList<>();
@@ -419,9 +360,6 @@ public class Hotel {
 
         return matchingPastReservations;
     }
-
-
-
     public List<Reservation> searchPastReservationsByDate(Date checkInDate) {
         // Create a list to store matching past reservations
         List<Reservation> matchingPastReservations = new ArrayList<>();
@@ -435,7 +373,6 @@ public class Hotel {
 
         return matchingPastReservations;
     }
-
     public List<Staff> getAvailableCleaningStaff() {
         List<Staff> availableStaff = new ArrayList<>();
         for (Staff staff : staffMembers) {
@@ -446,7 +383,6 @@ public class Hotel {
         }
         return availableStaff;
     }
-
     public List<Room> getAvailableRoomsForCleaning() {
         List<Room> availableRooms = new ArrayList<>();
         for (Room room : rooms) {
@@ -457,7 +393,6 @@ public class Hotel {
         }
         return availableRooms;
     }
-
     public static Staff findStaffById(int id) {
         for (Staff staff : staffMembers) {
             // Check if the staff member is available for cleaning (you should define your availability criteria)
@@ -466,5 +401,14 @@ public class Hotel {
             }
         }
         return null;
+    }
+    public List<Complaint> getresolvedComplaints() {
+        List<Complaint> unresolvedComplaints = new ArrayList<>();
+        for (Complaint complaint : complaints) {
+            if (complaint.isResolved()) {
+                unresolvedComplaints.add(complaint);
+            }
+        }
+        return unresolvedComplaints;
     }
 }
